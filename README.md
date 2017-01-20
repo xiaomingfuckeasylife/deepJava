@@ -2,7 +2,7 @@
 All JAVA stuff 
 
 ## Table of Contents
-- [JVM] (#jvm)
+- [JVM] (#Jvm)
 
-### Advertising
-- [JVM](https://developers.google.com/adsense/?hl=en) - Free, flexible way to earn money from your websites, mobile sites, and site search results.
+### Jvm
+- [JVM](https://github.com/xiaomingfuckeasylife/deepJava/blob/master/README_JVM.md) - JVM study note . 
