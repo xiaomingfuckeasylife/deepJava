@@ -3,8 +3,8 @@ All JAVA stuff
 
 
 ## Table of Contents
-- [JVM] (#jmvm)
+- [JVM] (#JVM)
 
 
-### Jvm
+### JVM
 - [JVM](https://github.com/xiaomingfuckeasylife/deepJava/blob/master/README_JVM.md) - JVM study note . 
