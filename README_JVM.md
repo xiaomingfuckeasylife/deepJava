@@ -37,11 +37,11 @@
 
 ## Java虚拟机的参数
 
-```
+```bash
 java [-options] class [args...]
 ```
 其中 -option是指在这个地方可以设置jvm参数 后面的class是我们带有main的字节码文件，args是这个main函数的参数。例如：
-```
+```java
 public class Main{
   public static void main(String args[]){
     for(int i=0;i<args.length;i++){
@@ -51,7 +51,7 @@ public class Main{
   }
 }
 ```
-```
+```bash
 $>java -Xmx32 cn.Main a 
 参数 1 ：a
 Xmx32M
@@ -63,7 +63,7 @@ eclipse中jvm参数的设置在run as->run configurations->Arguments中进行配
 根据回收机制实现的不同java堆也有所不同，常见的java堆可以分为新生代和老年代两个部分，其中新生代用于存放刚生成不久的对象，老年代用于存放年龄较大的对象，其中新生代还可以分为eden区,s0区以及s1区，其中s0和s1大小一样，也被称为from和to区域。大多数情况下对象出世的时候首先被放入eden区域，之后没经过一次新生垃圾回收，所有存活下来的对象年龄就涨了一岁，这个时候就从eden区域转化到，s0或者s1区域。经过一定次数的回收循环，当对象到达一定的年龄以后就会转到老年区域（tenured）。下面的一个实例用于展示方法区，java堆，java栈的区别，
 ![堆明细图](https://i.imgsafe.org/1c89869282.png) 
 
-```
+```java
 public class SimpleHeap{
   private int id;
   public SimpleHead(int id){
@@ -88,7 +88,7 @@ java栈和程序线程的执行有密切的关系。线程的执行基本行为�
 ![栈详情图](https://i.imgsafe.org/1c78391fbc.png) 
 
 当请求的栈的深度大于最大的栈深度的时候，会报出stackoverflow的错误。java可以通过-Xss堆最大的栈空间大小进行设置。
-```
+```java
 public class Main {
 	private static int depth;
 	
@@ -106,7 +106,7 @@ public class Main {
 	}
 }
 ```
-```
+```bash
 $> java -Xss200k Main 
 the bigest depth is 1359
 $> java -Xss400k Main
@@ -114,7 +114,7 @@ the bigest depth is 6109
 ```
 ### `局部变量表` 局部变量表只有在当前函数调用中有效，当前函数调用结束后，随着函数的销毁，局部变量表随之销毁。由于局部变量表在栈桢，所以如果局部变量变量和参数较多，会使得局部变量表膨胀，从而导致栈桢占的内存变大，从而栈能够嵌套的函数变少。
 
-```
+```java
 public class Main {
 	private static int depth;
 	
@@ -133,12 +133,12 @@ public class Main {
 	}
 }
 ```
-```
+```bash
 $> java -Xss200k Main 
 the bigest depth is 799
 ```
 局部变量表的槽位是可以充用的，如果一个局部变量过了作用域（出了括号）那么再之后，如果有新的局部变量，就很可能复用过期的局部变量的槽位，从而达到节省资源的目的。局部变量表中的变量也是垃圾回收的重要的根结点，只要被局部变量表直接或者间接联系的对象都是不会被回收的。
-```
+```java
 public class LocalVarGC{
 	public void localVar1(){
   		Byte[] bytes = new Byte[6 * 1024 * 1024];
@@ -188,7 +188,7 @@ localVar1 在方法内部调用gc回收的时候，这个时候局部变量还�
 ### `桢数据区` 主要用于支持常量池解析，正常方法返回，异常处理，存储着常量池的指针，异常处理表等等。
 
 ### `栈上分配` 对于那些私有化（其他线程无法访问到的对象）分配到栈上，而不分配到堆上，这样的好处，出栈的时候这些对象就会自行销毁，而不用gc，提高效率。这种技术有一个基础就是`逃逸分析`，也就是分析对象是否能逃逸出方法体。例子：
-```
+```java
 public class onStackTest{
 	public static class User{
 		public User(int id){
@@ -210,7 +210,7 @@ public class onStackTest{
 }
 ```
 我们可以知道一个User占有8个字节(引用4个字节＋int类型4个字节)，10 000 000万次，大概可以申请80兆内存在堆上。我们执行一下 使用以下参数
-```
+```bash
 -server -Xmx10M -Xms10M -XX:+DoEscapeAnalysis -XX:+PrintGC -XX:-UseTLAB -XX:+EliminateAllocations
 ```	
 -server : 因为必须在server模式下，才可以开启逃逸分析。-XX:DoEscapeAnalysis ： 启用逃逸分析。 -Xmx10M -Xms10M ：执行最大堆内存以及初始化堆内存。-XX:+PrintGC 打印gc日志。-XX:+ElimateAllocations：开启标量替换，允许将对象打散到栈上。这个时候id会被当作一个局部变量-XX:-UseTLAB：关闭了TLAN。
@@ -219,7 +219,7 @@ public class onStackTest{
 ## 识别方法区
 和java堆一样，方法区（永久区）也是所有线程都能访问的区域，方法区域的大小决定了，jvm可以加载的类的数量。如果类太多，也会导致内存溢出。在jdk1.6,1.7中可以通过设置，-XX:PermSize -XX:MaxPermSize指定。如果系统使用了动态代理，那么可能会产生很多的类。就可能导致永久区内存溢出。
 
-```
+```java
 	public static void main(String[] args) {
 		Interceptor c = new Interceptor();
 		for(int i=0;i<1000000;i++){
@@ -228,11 +228,11 @@ public class onStackTest{
 	}
 ```
 然后将jvm参数设置：默认的永久区内存大小为64兆
-```
+```bash
 -XX:+PrintGCDetails -XX:PermSize=5M -XX:MaxPermSize=5M
 ```
 然后执行代码后发现永久区内存溢出：
-```
+```java
 Exception in thread "Reference Handler" java.lang.OutOfMemoryError: PermGen space
 ```
 在JDK1.8中，彻底废除了方法区（永久区），取而代之的为元数据区，元数据区大小可以通过使用参数-XX:MaxMetaspaceSize进行设置。这是一块堆外的直接内存。与方法区不同，默认情况下，他会一直使用知道系统内存使用完毕为止。如果元数据区内存溢出同样会报错。`Metaspace`
@@ -241,12 +241,12 @@ Exception in thread "Reference Handler" java.lang.OutOfMemoryError: PermGen spac
 ## 跟踪调试参数
 
 ##### 1. 最简单的一个GC参数 -XX:+PrintGC 使用这个参数，是要程序调用了GC，则会打印
-```
+```java
 [Full GC 1362K->375K(83008K), 0.0197301 secs]
 ```
 这个表示执行了一次Full垃圾回收，堆内存使用从1362K到回收后的375k，总的堆内存为83M左右，这词gc使用的时间为0.019秒
 ##### 2. 如果觉得这个显示的不是那么清楚，可以使用 -XX:+PrintGCDetails 
-```
+```java
 [Full GC (System) [CMS: 0K->375K(63872K), 0.0162591 secs] 1362K->375K(83008K), [CMS Perm : 4629K->4628K(21248K)], 0.0226283 secs] [Times: user=0.02 sys=0.00, real=0.02 secs] 
 Heap
  par new generation   total 19136K, used 1021K [7f3000000, 7f44c0000, 7f44c0000)
@@ -258,7 +258,7 @@ Heap
 ```
 老年代使用了63872k内存的375k，新生代没有使用内存，gc后，总的使用内存从1362k到现在的375k，也就是新生代现在所有区域都没有使用内存。方法区使用了4628k内存，gc总共花费了0.02秒，用户态系统耗时0.02，系统态系统耗时0，实际耗时0.02最后的三个地址，分别为内存的下界，当前上界，上届。
 ##### 3. 使用-XX:+PrintHeapAtGC 可以打印GC前后的堆内存状况
-```
+```java
 {Heap before GC invocations=0 (full 0):
  par new generation   total 19136K, used 1362K [7f3000000, 7f44c0000, 7f44c0000)
   eden space 17024K,   8% used [7f3000000, 7f3154a00, 7f40a0000)
@@ -276,7 +276,7 @@ Heap after GC invocations=1 (full 1):
 }
 ```
 ##### 4.由于GC会引起程序停顿，因此我们可以通过-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime观察程序的执行时间，和停顿时间
-```
+```java
 Application time: 0.5324587 seconds
 Total time for which application threads were stopped: 0.0160692 seconds
 Application time: 0.0262697 seconds
@@ -284,7 +284,7 @@ Application time: 0.0262697 seconds
 ##### 5. 将GC产生的日志输入到日志文件。 -Xloggc:gc.log
 
 ##### 6. 使用-XX:+TraceClassLoading  -XX:+TraceClassUnloading 用于监测加载的类以及卸载的类
-```
+```java
 [Opened /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar]
 [Loaded java.lang.Object from /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar]
 [Loaded java.io.Serializable from /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar]
@@ -295,7 +295,7 @@ Application time: 0.0262697 seconds
 ```
 
 ###### 7. 使用-XX:+PrintVMOptions 打印JVM接受的显示参数。 -XX:+PrintCommandLineFlags 打印JVM接受的显示和隐式参数 :
-```
+```bash
 (显示和隐式)
 -XX:MaxNewSize=87244800 -XX:MaxTenuringThreshold=4 -XX:NewRatio=7 -XX:NewSize=21811200 -XX:OldPLABSize=16 -XX:OldSize=65433600 -XX:+PrintCommandLineFlags -XX:+PrintGCDetails -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+UseParNewGC 
 ```
@@ -303,7 +303,7 @@ Application time: 0.0262697 seconds
 ##### 8. 最大堆初始堆的设置：-Xmx-Xms 一般来说虚拟机会维持在初始堆空间，但是如果堆空间不足，则会扩展堆空间内容，扩展的上线为最大堆空间 , 在工作中我们可以将初始和最大堆空间设置成一样的这样可以减少GC，提高性能。
 
 ##### 9. 使用参数-Xmn 可以设置新生代的内存大小，这个参数对GC行为有很大的影响，新生代的大小一般设置为整个堆空间的1/3到1/4左右。 -XX:SurvivorRatio用来设置新生代中eden和from/to的比例。
-```
+```java
 public class NewSizeDemo{
 	public static void main(String[] args){
 		byte[] b = null;
@@ -315,7 +315,7 @@ public class NewSizeDemo{
 ```
 使用不同的堆空间配置可以得到不同的gc效果。
 `-Xmx20m -Xms20m -Xmn1m -XX:SurvivorRadio=2 -XX:+PrintGCDetails` 运行上述程序
-```
+```java
 [GC [ParNew: 512K->245K(768K), 0.0070901 secs] 512K->245K(20224K), 0.0096377 secs] [Times: user=0.01 sys=0.00, real=0.01 secs] 
 [GC [ParNew: 757K->204K(768K), 0.0037639 secs] 757K->412K(20224K), 0.0038154 secs] [Times: user=0.01 sys=0.01, real=0.00 secs] 
 Heap
@@ -328,7 +328,7 @@ Heap
 ```
 我们看到申请的10兆内存基本上都在老年代上面因为新生代没有足够的空间用于储存1兆的内存，所以触发新生代gc。
 下面我们进行另外一种配置`-Xmx20m -Xms20m -Xmn7m -XX:SurvivorRadio=2 -XX:+PrintGCDetails` :
-```
+```java
 [GC [ParNew: 3340K->1414K(5376K), 0.0025629 secs] 3340K->1414K(18688K), 0.0059159 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
 [GC [ParNew: 4534K->1024K(5376K), 0.0037942 secs] 4534K->1408K(18688K), 0.0038327 secs] [Times: user=0.01 sys=0.00, real=0.01 secs] 
 [GC [ParNew: 4199K->1042K(5376K), 0.0020668 secs] 4584K->1427K(18688K), 0.0021145 secs] [Times: user=0.00 sys=0.01, real=0.00 secs] 
@@ -344,7 +344,7 @@ Heap
 ![新生代老年代](https://i.imgsafe.org/1c64787836.png) 
 
 ##### 10. 堆内存溢出的时候，我们可以使用-XX:HeapDumpOnOutofMemoryError -XX:HeapDumpPath=XX/a.dump 使用这两个参数如果发生堆内存溢出可以将整个堆信息导出到对应的文件中。
-```
+```java
 [GC [ParNew: 1024K->128K(1152K), 0.0122162 secs] 1024K->367K(6464K), 0.0150368 secs] [Times: user=0.01 sys=0.01, real=0.02 secs] 
 [GC [ParNew: 367K->117K(1152K), 0.0017592 secs][CMS: 345K->376K(5312K), 0.0167783 secs] 606K->376K(6464K), [CMS Perm : 4629K->4628K(21248K)], 0.0186347 secs] [Times: user=0.02 sys=0.01, real=0.02 secs] 
 [Full GC [CMS: 376K->338K(6912K), 0.0094079 secs] 376K->338K(8064K), [CMS Perm : 4628K->4617K(21248K)], 0.0094780 secs] [Times: user=0.01 sys=0.00, real=0.01 secs] 
@@ -371,7 +371,7 @@ Heap
 ##### 13. 直接内存的配置可以使用 ， -XX:MaxDirectoryMemorySize 如果不设置默认值为最大的堆内存。当直接内存的使用到达最大值的时候，这个时候就会触发垃圾回收机制，如果这个时候仍然不能释放足够的空间就会报出OutOfMemory的异常，一般来说直接内存的读写速度快于java堆，但是申请内存的速度小于java堆。
 
 首先来测试堆内存和直接内存的访问：
-```
+```java
 public class AccessDirectBuffer{
 	
 	public void directAccess(){
@@ -427,14 +427,14 @@ public class AccessDirectBuffer{
 }
 ```
 结果
-```
+```java
 direct Access : 177
 buffer Access : 529
 direct Access : 417
 buffer Access : 511
 ```
 再来测试直接内存和java堆的内存申请速度
-```
+```java
 public class AccessDirectBuffer{
 	
 	public void directAccess(){
@@ -471,7 +471,7 @@ public class AccessDirectBuffer{
 }
 ```
 结果
-```
+```java
 direct Access : 44
 buffer Access : 16
 direct Access : 10
@@ -516,7 +516,7 @@ buffer Access : 4
  * 不可触及的，对象的finalize函数被调用，并且没有复活。因为finalize只可能被调用一次。
  
 #### 对象的复活
-```
+```java
 public class CanRelieveObj{
 	private static CanRelieveObj obj ; 
 	@Override
@@ -550,7 +550,7 @@ public class CanRelieveObj{
 	}
 }
 ```
-```
+```java
 [Full GC (System) [CMS: 0K->376K(63872K), 0.0166137 secs] 1362K->376K(83008K), [CMS Perm : 4632K->4631K(21248K)], 0.0211313 secs] [Times: user=0.01 sys=0.01, real=0.03 secs] 
 finallize recorvery
 first gc
@@ -577,7 +577,7 @@ Heap
 #### 可触及性的强度之软引用
 弱引用的特点：
 1. 弱引用只有在内存不足的时候才会被回收。并且每一个引用软引用都可以附带一个引用队列，当这个对象的可达性状态发生改变的时候，软引用就会进入引用队列。通过这个引用队列可以跟踪对象的回收状态。
-```
+```java
 public class SoftRef{
 	
 	private static ReferenceQueue<User> rq ;
@@ -646,7 +646,7 @@ public class SoftRef{
 ```
 
 以上的内容的JVM参数为`-Xmx10m-Xms10m` 
-```
+```java
 before gc:test.SoftRef$User@68f99ff5
 when there are enough space after gc :test.SoftRef$User@68f99ff5
 when there are not enough space :null
