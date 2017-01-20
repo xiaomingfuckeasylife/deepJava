@@ -1,5 +1,15 @@
 # deepJava
 All JAVA stuff 
+
+
+## Table of Contents
+- [JVM] (#Jvm)
+
+
+
+
+
+
 1
 2
 3
@@ -33,16 +43,6 @@ All JAVA stuff
 2
 32
 3
-
-## Table of Contents
-- [JVM] (#Jvm)
-
-
-
-
-
-
-
 
 
 
