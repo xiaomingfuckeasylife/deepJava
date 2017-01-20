@@ -1,5 +1,38 @@
 # deepJava
 All JAVA stuff 
+1
+2
+3
+4
+4
+
+5
+
+
+2
+3
+
+23
+
+32
+3
+2
+32
+3
+
+
+
+
+23
+3
+2
+3
+23
+2
+3
+2
+32
+3
 
 ## Table of Contents
 - [JVM] (#Jvm)
