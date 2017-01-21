@@ -668,4 +668,22 @@ User 1 is been removed
 ##### 串行回收器
 是指使用单线程进行垃圾回收的回收器。根据作用的空间不同分为新生代串行回收器和老年代串行回收器。
 * 新生代串行回收器：特点，独占式的（STW）以及使用单线程进行垃圾回收。由于它会停止所有线程的当前活动，所以在实时性要求很高的场景下基本上不能使用这种回收器，这种回收器，适合使用在单核的计算机中，对实时性要求不高的场景下。 可以使用 +XX:+UseSerialGC参数进行设置。在client模式下，默认的回收器为串行回收器。`[GC [DefNew: 1267K->192K(1856K), 0.0063437 secs] 1267K->372K(65344K), 0.0088598 secs] [Times: user=0.00 sys=0.00, real=0.01 secs]`
-* 老年代串行回收器：
+
+* 老年代串行回收器：使用标记压缩进行垃圾回收，老年代的垃圾回收一般会比新生代花的时间长很多，这个时候可能导致程序停顿很长时间。虽然如此但是由于它的稳定性，所以我们经常将它与其他的垃圾回收器一起使用。作为备用回收器。可以通过一下参数设置老年代串行回收器。-XX:+UseSerialGC (新生代老年代都使用串行回收器)，-XX:+UseParNewGC（新生代使用ParNew回收器，老年代使用串行回收器）,-XX:+UseParallelGC(新生代使用ParallelGC，老年代使用串行回收器)`[Full GC (System) [Tenured: 0K->372K(43712K), 0.0130356 secs] 2438K->372K(63360K), [Perm : 4628K->4628K(21248K)], 0.0200884 secs] [Times: user=0.01 sys=0.01, real=0.02 secs]`
+
+##### 并行回收器
+是指通过多个线程同时进行垃圾处理的回收器。对于并行能力强的计算机，可以有效缩短垃圾回收所需要的实际内容。注意虽然是并行并不是并发。下面的这些并行回收器都是STW的独断式的垃圾回收器，也就是说再用这些垃圾回收器进行垃圾处理的时候，所有的线程停止工作。
+
+* 新生代ParNew回收器：只是简单的将串行回收器从单线程转为多线程仅此而已。所以他也是独占式的(STW)。可以通过-XX:+UseParNewGC(新生代使用ParNew回收器，老年代使用串行回收器) -XX:+UseConcMarkSweepGC:(新生代使用ParNew回收器，老年代使用CMS)使用ParNew回收器的时候，可以使用-XX:ParallelGCThreads对并行线程数量进行设定。当CPU数量大于8的时候，可以使用公式 3 + ((5*CPU_Count)/8) `[GC [ParNew: 1267K->192K(1856K), 0.0040987 secs] 1267K->395K(65344K), 0.0103077 secs] [Times: user=0.01 sys=0.01, real=0.01 secs]`
+
+* 新生代Parallel回收器：这个回收器和ParNew很类似，可以通过，-XX:+UseParallelGC（新生代使用ParallelGC，老年代使用串行回收器），-XX:+UseParallelOldGC(新生代使用ParallelGC，老年代使用paralalOld回收器),只不过它对GC的吞吐量十分关注，可以通过-XX:MaxGCPauseMillis设置，设置最大垃圾收集停顿时间。它的值是一个大于0的值。一般是通过降低吞吐量达到要求的时间。 可以通过-XX:GCTimeRatio设置吞吐量大小，它是一个0到99的值，假设它的值为n，那么最大的一次gc的时间将不会超过 1/(n+1) . 除此之外，他还支持一种自适应的GC调节模式，可以使用-XX:UseAdaptiveSizePolicy,  这种模式下我们可以只需要设置最大堆，最大吞吐量，每次gc最大消耗时间，然后让JVM自行调优.`[GC [PSYoungGen: 1288K->240K(1792K)] 2312K->1428K(65280K), 0.0092242 secs] [Times: user=0.01 sys=0.01, real=0.01 secs]`
+
+* 老年代ParallelOld回收器：Old是相对于新生代来讲的，他和新生代基本一样， 可以通过-XX:+UseParallelOldGC (新生代使用ParallelGC 老年代使用ParallelOldGC) `[Full GC (System) [PSYoungGen: 496K->0K(19136K)] [ParOldGen: 0K->372K(43712K)] 496K->372K(62848K) [PSPermGen: 4628K->4626K(21248K)], 0.0118866 secs] [Times: user=0.02 sys=0.00, real=0.01 secs]`
+
+##### CMS回收器
+这个垃圾回收器是Concurrent Marked Sweep 的缩写，使用的是标记清除算法。同时它又是一个多线程并行的回收器。
+* CMS回收器包含以下步骤：初始标记，并发标记，预清理，重新标记，并发清除和并发重置。其中初始标记和重新标记是独占式的，其余都是和用户线程并发的。所以从总体上来说，CMS并不是独占式的垃圾回收机制。可以通过 -XX:+UseConcMarkSweepGC 可以通过-XX:+ConcGCThreads 或者 -XX:+ParallelCMSThreads 手工设定并行的线程数量。
+
+* 因为CMS不是独占式的GC，所以他并不会等到内存用完的时候才进行GC，而是在内存进行到一定的使用率的时候就进行GC，预留部分内存在gc的时候程序使用。可以通过-XX:CMSInitiatingOccupancyFraction来设定。默认为68。也就是当使用率到达68%的时候回启用gc。由于算法为标记清除，标记清除最大的缺点就是空间碎片，为了解决空间碎片问题。我们可以使用-XX:+UseCMSCompactAtFullCollection (进行完垃圾回收后，进行碎片清除) 或者-XX:CMSFullGCsBeforeCompaction(多少次cms后进行一次碎片清除)`[Full GC (System) [CMS: 0K->376K(63872K), 0.0149420 secs] 11602K->376K(83008K), [CMS Perm : 4629K->4628K(21248K)], 0.0176247 secs] [Times: user=0.01 sys=0.00, real=0.02 secs]` 
+
+
