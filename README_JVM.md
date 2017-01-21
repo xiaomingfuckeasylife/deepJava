@@ -686,4 +686,4 @@ User 1 is been removed
 
 * 因为CMS不是独占式的GC，所以他并不会等到内存用完的时候才进行GC，而是在内存进行到一定的使用率的时候就进行GC，预留部分内存在gc的时候程序使用。可以通过-XX:CMSInitiatingOccupancyFraction来设定。默认为68。也就是当使用率到达68%的时候回启用gc。由于算法为标记清除，标记清除最大的缺点就是空间碎片，为了解决空间碎片问题。我们可以使用-XX:+UseCMSCompactAtFullCollection (进行完垃圾回收后，进行碎片清除) 或者-XX:CMSFullGCsBeforeCompaction(多少次cms后进行一次碎片清除)`[Full GC (System) [CMS: 0K->376K(63872K), 0.0149420 secs] 11602K->376K(83008K), [CMS Perm : 4629K->4628K(21248K)], 0.0176247 secs] [Times: user=0.01 sys=0.00, real=0.02 secs]` 
 
-
+* 有关class的回收，如果开启了-XX:+CMSClassUnloadingEnabled 那么在条件允许的情况下，还会进行一次FUll GC对Perm
