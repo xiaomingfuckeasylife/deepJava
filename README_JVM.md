@@ -240,12 +240,12 @@ Exception in thread "Reference Handler" java.lang.OutOfMemoryError: PermGen spac
 # 常用虚拟机参数
 ## 跟踪调试参数
 
-##### 1. 最简单的一个GC参数 -XX:+PrintGC 使用这个参数，是要程序调用了GC，则会打印
+#### 1. 最简单的一个GC参数 -XX:+PrintGC 使用这个参数，是要程序调用了GC，则会打印
 ```java
 [Full GC 1362K->375K(83008K), 0.0197301 secs]
 ```
 这个表示执行了一次Full垃圾回收，堆内存使用从1362K到回收后的375k，总的堆内存为83M左右，这词gc使用的时间为0.019秒
-##### 2. 如果觉得这个显示的不是那么清楚，可以使用 -XX:+PrintGCDetails 
+#### 2. 如果觉得这个显示的不是那么清楚，可以使用 -XX:+PrintGCDetails 
 ```java
 [Full GC (System) [CMS: 0K->375K(63872K), 0.0162591 secs] 1362K->375K(83008K), [CMS Perm : 4629K->4628K(21248K)], 0.0226283 secs] [Times: user=0.02 sys=0.00, real=0.02 secs] 
 Heap
@@ -257,7 +257,7 @@ Heap
  concurrent-mark-sweep perm gen total 21248K, used 4689K [7fae00000, 7fc2c0000, 800000000)
 ```
 老年代使用了63872k内存的375k，新生代没有使用内存，gc后，总的使用内存从1362k到现在的375k，也就是新生代现在所有区域都没有使用内存。方法区使用了4628k内存，gc总共花费了0.02秒，用户态系统耗时0.02，系统态系统耗时0，实际耗时0.02最后的三个地址，分别为内存的下界，当前上界，上届。
-##### 3. 使用-XX:+PrintHeapAtGC 可以打印GC前后的堆内存状况
+#### 3. 使用-XX:+PrintHeapAtGC 可以打印GC前后的堆内存状况
 ```java
 {Heap before GC invocations=0 (full 0):
  par new generation   total 19136K, used 1362K [7f3000000, 7f44c0000, 7f44c0000)
@@ -275,15 +275,15 @@ Heap after GC invocations=1 (full 1):
  concurrent-mark-sweep perm gen total 21248K, used 4628K [7fae00000, 7fc2c0000, 800000000)
 }
 ```
-##### 4.由于GC会引起程序停顿，因此我们可以通过-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime观察程序的执行时间，和停顿时间
+#### 4.由于GC会引起程序停顿，因此我们可以通过-XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCApplicationStoppedTime观察程序的执行时间，和停顿时间
 ```java
 Application time: 0.5324587 seconds
 Total time for which application threads were stopped: 0.0160692 seconds
 Application time: 0.0262697 seconds
 ```
-##### 5. 将GC产生的日志输入到日志文件。 -Xloggc:gc.log
+#### 5. 将GC产生的日志输入到日志文件。 -Xloggc:gc.log
 
-##### 6. 使用-XX:+TraceClassLoading  -XX:+TraceClassUnloading 用于监测加载的类以及卸载的类
+#### 6. 使用-XX:+TraceClassLoading  -XX:+TraceClassUnloading 用于监测加载的类以及卸载的类
 ```java
 [Opened /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar]
 [Loaded java.lang.Object from /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar]
@@ -294,15 +294,15 @@ Application time: 0.0262697 seconds
 ......
 ```
 
-###### 7. 使用-XX:+PrintVMOptions 打印JVM接受的显示参数。 -XX:+PrintCommandLineFlags 打印JVM接受的显示和隐式参数 :
+#### 7. 使用-XX:+PrintVMOptions 打印JVM接受的显示参数。 -XX:+PrintCommandLineFlags 打印JVM接受的显示和隐式参数 :
 ```bash
 (显示和隐式)
 -XX:MaxNewSize=87244800 -XX:MaxTenuringThreshold=4 -XX:NewRatio=7 -XX:NewSize=21811200 -XX:OldPLABSize=16 -XX:OldSize=65433600 -XX:+PrintCommandLineFlags -XX:+PrintGCDetails -XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:+UseParNewGC 
 ```
 
-##### 8. 最大堆初始堆的设置：-Xmx-Xms 一般来说虚拟机会维持在初始堆空间，但是如果堆空间不足，则会扩展堆空间内容，扩展的上线为最大堆空间 , 在工作中我们可以将初始和最大堆空间设置成一样的这样可以减少GC，提高性能。
+#### 8. 最大堆初始堆的设置：-Xmx-Xms 一般来说虚拟机会维持在初始堆空间，但是如果堆空间不足，则会扩展堆空间内容，扩展的上线为最大堆空间 , 在工作中我们可以将初始和最大堆空间设置成一样的这样可以减少GC，提高性能。
 
-##### 9. 使用参数-Xmn 可以设置新生代的内存大小，这个参数对GC行为有很大的影响，新生代的大小一般设置为整个堆空间的1/3到1/4左右。 -XX:SurvivorRatio用来设置新生代中eden和from/to的比例。
+#### 9. 使用参数-Xmn 可以设置新生代的内存大小，这个参数对GC行为有很大的影响，新生代的大小一般设置为整个堆空间的1/3到1/4左右。 -XX:SurvivorRatio用来设置新生代中eden和from/to的比例。
 ```java
 public class NewSizeDemo{
 	public static void main(String[] args){
@@ -343,7 +343,7 @@ Heap
 老年代基本上区域没有被使用，新生代的内存空间完全足够使用。除此之外我们还可以通过设置`-XX:NewRatio`来对老年代和新生代的比例进行配置。我们在这里就不赘述了：
 ![新生代老年代](https://i.imgsafe.org/1c64787836.png) 
 
-##### 10. 堆内存溢出的时候，我们可以使用-XX:HeapDumpOnOutofMemoryError -XX:HeapDumpPath=XX/a.dump 使用这两个参数如果发生堆内存溢出可以将整个堆信息导出到对应的文件中。
+#### 10. 堆内存溢出的时候，我们可以使用-XX:HeapDumpOnOutofMemoryError -XX:HeapDumpPath=XX/a.dump 使用这两个参数如果发生堆内存溢出可以将整个堆信息导出到对应的文件中。
 ```java
 [GC [ParNew: 1024K->128K(1152K), 0.0122162 secs] 1024K->367K(6464K), 0.0150368 secs] [Times: user=0.01 sys=0.01, real=0.02 secs] 
 [GC [ParNew: 367K->117K(1152K), 0.0017592 secs][CMS: 345K->376K(5312K), 0.0167783 secs] 606K->376K(6464K), [CMS Perm : 4629K->4628K(21248K)], 0.0186347 secs] [Times: user=0.02 sys=0.01, real=0.02 secs] 
@@ -364,11 +364,11 @@ Heap
 除此之外，JVM还允许我们在发生指定错误的时候，执行一个脚本程序 : printstack.sh
 `jstack -F %1 > /Users/clark/a.txt` `-XX:+PrintGCDetails -Xmx5m-Xms5m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/Users/clark/heap.dump "-XX:OnOutOfMemoryError=/Users/clark/printstack.sh %p"`
 
-##### 11. 配置方法区（永久区）内存 可以通过 -XX:PermSize -XX:PermMaxSize 配置元数据区内存可以使用 -XX:MaxMetaspaceSize 指定元数据区的大小。
+#### 11. 配置方法区（永久区）内存 可以通过 -XX:PermSize -XX:PermMaxSize 配置元数据区内存可以使用 -XX:MaxMetaspaceSize 指定元数据区的大小。
 
-##### 12. 栈内存的配置可以使用 -XX:Xss 
+#### 12. 栈内存的配置可以使用 -XX:Xss 
 
-##### 13. 直接内存的配置可以使用 ， -XX:MaxDirectoryMemorySize 如果不设置默认值为最大的堆内存。当直接内存的使用到达最大值的时候，这个时候就会触发垃圾回收机制，如果这个时候仍然不能释放足够的空间就会报出OutOfMemory的异常，一般来说直接内存的读写速度快于java堆，但是申请内存的速度小于java堆。
+#### 13. 直接内存的配置可以使用 ， -XX:MaxDirectoryMemorySize 如果不设置默认值为最大的堆内存。当直接内存的使用到达最大值的时候，这个时候就会触发垃圾回收机制，如果这个时候仍然不能释放足够的空间就会报出OutOfMemory的异常，一般来说直接内存的读写速度快于java堆，但是申请内存的速度小于java堆。
 
 首先来测试堆内存和直接内存的访问：
 ```java
@@ -478,35 +478,35 @@ direct Access : 10
 buffer Access : 4
 ```
 
-##### 14. JVM的两种模式，client 模式和server模式 。 其中client模式相对server模式启动块，针对用户界面程序，运行时间不长，追求启动速度的。但是server模式，启动缓慢，但是稳定，执行速度快。这两种模式下的各种参数大小也有很大的不同。
+#### 14. JVM的两种模式，client 模式和server模式 。 其中client模式相对server模式启动块，针对用户界面程序，运行时间不长，追求启动速度的。但是server模式，启动缓慢，但是稳定，执行速度快。这两种模式下的各种参数大小也有很大的不同。
 
 ## 垃圾回收概念与算法
 
 ### 讨论常用的垃圾回收算法
 
-##### 1. 引用指数法
+#### 1. 引用指数法
  * 实现：通过计算对象当前的引用数，如果为0则可以回收，如果不为0则不能回收。
  * 问题：1 无法处理循环的情况，比如，对象A引用对象B，然后对象B引用对象A，这种情况下，A和B都不会被回收。但是A，B已经没有其他的对象引用了，这个已经说明这两个，对象都是有问题的。都应该被回收。2 由于每个对象都有一个计数器跟着，这样每次对象引用的添加以及对象引用的销毁都会计数，这样堆系统的性能来说并不是很好。因此java并没有使用这种垃圾回收方式。
  
-##### 2. 标记清除法
+#### 2. 标记清除法
 
  * 实现：将垃圾回收分为两个阶段，标记阶段，清除阶段。标记从根结点（java栈的局部变量表）开始向上寻找对象找到的对象进行标记。在清除阶段，清除掉所有的没有被标记的对象。
  * 问题：容易产生空间碎片（也就是由于被清除的对象不是一整块一整块的，导致被清除的空间也是不连续的）
  
-##### 3. 复制算法
+#### 3. 复制算法
  
  * 实现：将内存分为两份，一份使用，一份暂时不使用。创立对象后，将需要回收的对象移到未使用区域，同时清空第一个区域的内存即可。
  * 缺点：内存减半。
  * 扩展：jvm也使用复制算法。在新生代的 eden from to 三个区域中 from和to就是复制区域。存活的放入到它们的内存里面，然后清除eden区域。
  
-##### 4 标记压缩法
+#### 4 标记压缩法
  * 实现：基本思想和标记清除法一样，只不过多了一个步骤，将标记的内存压缩到内存的一边，然后以此为边界清楚不需要的内存。
  * 扩展：jvm的老年代的垃圾回收使用的就是这种方式，这种方式既避免了将内存减半，有避免了空间碎片。由于老年区的对象一般很稳定所以并不适合复制算法。
  
-##### 5 分代算法
+#### 5 分代算法
  * 实现：由于不同的算法适用于不同的场景，所以，通常情况下，将内存分为新生代和老年代，新生代的对象基本上百分之90的会被销毁所以适用于复制算法，而老年代的对象，基本上很少需要被回收，所以适合使用标记清除法。
  
-##### 6 分区算法
+#### 6 分区算法
  * 实现：由于GC会是程序停顿，所以，我们如果每次都对整个堆内存进行gc的话，可能是程序陷入较长时间的停顿，这个时候，如果我们将内存分为几个不同的块，这个时候，如果我们只是对个别几个小的区块进行gc，就会减少一次gc的时间。
 
 ### 判断可触及性
