@@ -691,3 +691,6 @@ User 1 is been removed
 #### G1回收器
 * G1:(garbage-first):特点，并行性（充分利用多核），并发性（不是STW的回收器），分代GC，空间整理，可预见性（预判垃圾回收）。G1的回收过程分为四个阶段：1. 新生代GC，2. 并发标记周期， 3.混合收集 4. 如果需要再进行一次Full GC 。 可以通过 -XX:+UseG1GC标记打开垃圾回收。通过一下三个参数对其进行设置。-XX:MaxGCPauseMills 以及 -XX:ParallelGCThreads -XX:InitiatingHeapOccupancyPercent . 我们可以看到G1回收器基本上集合了上述的那些回收器的所有的优点。
 
+### 对象分配和回收的一些细节问题
+
+#### 
