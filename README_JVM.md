@@ -693,4 +693,11 @@ User 1 is been removed
 
 ### 对象分配和回收的一些细节问题
 
-#### 
+#### 禁用System.gc()
+1. 手动调用gc方法，会直接触发Full GC，同时对老年代和新生代进行垃圾回收。 可以通过参数 -XX:+DisableExplicitGC 来控制是否手工触发GC。
+2. 默认情况下调用gc方法，不会产生并发的垃圾回收机制，也就是说我们使用 CMS 或者是 G1的垃圾回收机制不起任何作用。这个时候我们可以通过配置，-XX:+ExplicitGCInvokesConcurrent 来改变这种默认的行为。
+3. 并行GC在Full GC的时候，都会首先进行一次，新生代GC，这样做的目的是为了让第一次的新生代GC，尽可能的分担一部分GC人物，从而尽可能的缩短GC总时间。这个可以通过 -XX:-ScavengeBeforeFullGC 进行去除。默认他是设置为true的。
+4. 新生代对象通过一定次数的GC循环后，如果仍然存活可以进入到老年区。默认次数为15次GC，这个数字可以通过，-XX:MaxTenuringThreshold进行设置。但是这个数字还收到survivor区域的使用率的影响，也就是说，如果到达了存活区使用率的上限仍然没有叨叨MaxTenuringThreshold的话，去小的值作为新的晋升老年区的年龄。survivor区的使用率可以通过-XX:TargetSurvivorRatio进行设定。
+5. survivor区存方不下的对象通常会被放入到老年代。可以通过参数-XX:PretenureSizeThreshold设置但是有时候却发现没有任何效果，这是因为他被分配到了TLAB区域，所以可以使用参数 -XX:-UserTLAB 然后在看GC信息。
+6. TLAB（Thread local allocation buffer）,线程本地缓存，这是一个线程专用的内存区域，由于一般情况下对象是分配在堆上的，而堆是对所有的线程可见的，那么，每次分配内存就需要做同步，这样就会降低效率，因此，JVM使用这种每个线程的专属区域避免线程冲突，TLAB本身占用了eden的空间。在TLAB启动的情况下，是为每一个线程分配自己的TLAB区域的。（其实这个和栈上分配很类似，只不过TLAB在堆上）![对象分配简要说明](https://i.imgsafe.org/36a88a6b5a.png)
+
