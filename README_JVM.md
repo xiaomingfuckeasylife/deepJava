@@ -703,4 +703,7 @@ User 1 is been removed
 
 ### Finallize对GC的影响
 1. Java提供了一个和c++析构函数类似的函数叫做finallize，默认情况下是不建议使用finallize进行垃圾回收的。之前也说过，他可能会外泄this引用，复活对象，造成内存泄漏，函数finallize是由FinallizerThread线程处理的。也就是说每一个对象即将被回收的时候都会加入到FinalizeThread的执行队列中。这个和我们之前说过的软引用是一样的。
-2. 每一个即将被回收的并且包含有finallize的对象，在被回收前都会被加入到FinallizeThread的执行队列中，这个队列为ReferenceQueue，内部结构为一个链表结构，队列中每一项为一个Finallizer引用对象。Finallizer内部封装了实际的回收对象，并且通过链表实现。并且通过其中的referent指向强引用。` sun.misc.VM.addFinalRefCount(-1)` 通过这个方法删除内存中的对象。  也就是说内存实际上是在finallize响应队列中删除的。所以如果我们的某个finallize的书写不规范，比如耗时过长那么我们就可能有大量的内存来不及释放，从而oom。所以使用finallize方法必须十分小心。
+
+2. 每一个即将被回收的并且包含有finallize的对象，在被回收前都会被加入到FinallizeThread的执行队列中，这个队列为ReferenceQueue，内部结构为一个链表结构，队列中每一项为一个Finallizer引用对象。Finallizer内部封装了实际的回收对象，并且通过链表实现。并且通过其中的referent指向强引用。` sun.misc.VM.addFinalRefCount(-1)` 通过这个方法删除内存中的对象。  也就是说内存实际上是在finallize响应队列中删除的。所以如果我们的某个finallize的书写不规范，比如耗时过长那么我们就可能有大量的内存来不及释放，从而oom。所以使用finallize方法必须十分小心。![finallize监控队列](https://i.imgsafe.org/3767963b53.png)
+
+
