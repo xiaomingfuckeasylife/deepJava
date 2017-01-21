@@ -682,7 +682,7 @@ User 1 is been removed
 
 #### CMS回收器
 这个垃圾回收器是Concurrent Marked Sweep 的缩写，使用的是标记清除算法。同时它又是一个多线程并行的回收器。
-* CMS回收器包含以下步骤：初始标记，并发标记，预清理，重新标记，并发清除和并发重置。其中初始标记和重新标记是独占式的，其余都是和用户线程并发的。所以从总体上来说，CMS并不是独占式的垃圾回收机制。可以通过 -XX:+UseConcMarkSweepGC 可以通过-XX:+ConcGCThreads 或者 -XX:+ParallelCMSThreads 手工设定并行的线程数量。
+* CMS回收器包含以下步骤：初始标记，并发标记，预清理，重新标记，并发清除和并发重置。其中初始标记和重新标记是独占式的，其余都是和用户线程并发的。所以从总体上来说，CMS并不是独占式的垃圾回收机制。可以通过 -XX:+UseConcMarkSweepGC 可以通过-XX:+ConcGCThreads 或者 -XX:+ParallelCMSThreads 手工设定并行的线程数量。![CMS回收器](https://i.imgsafe.org/33aae83123.png)
 
 * 因为CMS不是独占式的GC，所以他并不会等到内存用完的时候才进行GC，而是在内存进行到一定的使用率的时候就进行GC，预留部分内存在gc的时候程序使用。可以通过-XX:CMSInitiatingOccupancyFraction来设定。默认为68。也就是当使用率到达68%的时候回启用gc。由于算法为标记清除，标记清除最大的缺点就是空间碎片，为了解决空间碎片问题。我们可以使用-XX:+UseCMSCompactAtFullCollection (进行完垃圾回收后，进行碎片清除) 或者-XX:CMSFullGCsBeforeCompaction(多少次cms后进行一次碎片清除)`[Full GC (System) [CMS: 0K->376K(63872K), 0.0149420 secs] 11602K->376K(83008K), [CMS Perm : 4629K->4628K(21248K)], 0.0176247 secs] [Times: user=0.01 sys=0.00, real=0.02 secs]` 
 
