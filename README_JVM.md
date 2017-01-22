@@ -730,3 +730,411 @@ User 1 is been removed
  
 #### 类似的还有vmstat , iostat
 
+#### pidstat 一个强大的监测工具，不仅可以监测进程，还可以监测线程
+```java
+/**
+ * 
+ * @author clark
+ * 
+ * Jan 22, 2017
+ * 开启四个线程，其中一个占用忙碌，另外三个空闲状态
+ */
+public class PidstatTest{
+	
+	public static class BusyThread extends Thread{
+		@Override
+		public void run() {
+			while(true){
+				System.out.print("hei , i am busy\t");
+			}
+		}
+	}
+	
+	public static class IdleThread extends Thread{
+		@Override
+		public void run() {
+			while(true){
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public static void main(String[] args) {
+		
+		new PidstatTest.BusyThread().start();
+		new PidstatTest.IdleThread().start();
+		new PidstatTest.IdleThread().start();
+		new PidstatTest.IdleThread().start();
+		
+	}
+}
+```
+通过jps找到执行的进程
+```
+15502 PidstatTest
+```
+然后使用`pidstat -p 15502 -u 1 3` 对15502号线程的CPU进行每1秒钟一次的采样连续三次。
+```bash
+[root@SextoyTRC ~]# pidstat -p 15502 -u 1 3
+Linux 2.6.32-042stab113.11 (SextoyTRC) 	22.1.2017 	_i686_	(24 CPU)
+
+20:28:19          PID    %usr %system  %guest    %CPU   CPU  Command
+20:28:20        15502    0,00    1,00    0,00    1,00     0  java
+20:28:21        15502    1,00    0,00    0,00    1,00     0  java
+20:28:22        15502    0,00    0,00    0,00    0,00     0  java
+Average:        15502    0,33    0,33    0,00    0,67     -  java
+```
+如果想要看进一步的线程信息可以通过添加参数`-t`完成对具体的线程的监控
+```bash
+[root@SextoyTRC ~]# pidstat -p 15502 -u 1 3 -t
+Linux 2.6.32-042stab113.11 (SextoyTRC) 	22.1.2017 	_i686_	(24 CPU)
+
+20:44:46         TGID       TID    %usr %system  %guest    %CPU   CPU  Command
+20:44:47        15502         -    0,00    0,00    0,00    0,00     0  java
+20:44:47            -     15502    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15503    0,00    0,00    0,00    0,00     1  |__java
+20:44:47            -     15504    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15505    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15506    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15507    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15508    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15509    0,00    0,00    0,00    0,00     1  |__java
+20:44:47            -     15510    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15511    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15512    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15513    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     15514    0,00    0,00    0,00    0,00     0  |__java
+20:44:47            -     16035    0,00    0,00    0,00    0,00     1  |__java
+
+20:44:47         TGID       TID    %usr %system  %guest    %CPU   CPU  Command
+20:44:48        15502         -    1,00    0,00    0,00    1,00     0  java
+20:44:48            -     15502    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15503    0,00    0,00    0,00    0,00     1  |__java
+20:44:48            -     15504    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15505    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15506    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15507    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15508    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15509    0,00    0,00    0,00    0,00     1  |__java
+20:44:48            -     15510    0,00    0,00    0,00    0,00     1  |__java
+20:44:48            -     15511    1,00    0,00    0,00    1,00     1  |__java
+20:44:48            -     15512    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15513    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     15514    0,00    0,00    0,00    0,00     0  |__java
+20:44:48            -     16035    0,00    0,00    0,00    0,00     1  |__java
+
+20:44:48         TGID       TID    %usr %system  %guest    %CPU   CPU  Command
+20:44:49        15502         -    0,00    0,00    0,00    0,00     0  java
+20:44:49            -     15502    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15503    0,00    0,00    0,00    0,00     1  |__java
+20:44:49            -     15504    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15505    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15506    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15507    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15508    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15509    0,00    0,00    0,00    0,00     1  |__java
+20:44:49            -     15510    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15511    0,00    0,00    0,00    0,00     1  |__java
+20:44:49            -     15512    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15513    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     15514    0,00    0,00    0,00    0,00     0  |__java
+20:44:49            -     16035    0,00    0,00    0,00    0,00     1  |__java
+
+Average:         TGID       TID    %usr %system  %guest    %CPU   CPU  Command
+Average:        15502         -    0,33    0,00    0,00    0,33     -  java
+Average:            -     15502    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15503    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15504    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15505    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15506    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15507    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15508    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15509    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15510    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15511    0,33    0,00    0,00    0,33     -  |__java
+Average:            -     15512    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15513    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15514    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     16035    0,00    0,00    0,00    0,00     -  |__java
+20:29:51            -     15508    0,00    0,00    0,00    0,00     0  |__java
+20:29:51            -     15509    0,00    0,00    0,00    0,00     1  |__java
+20:29:51            -     15510    0,00    0,00    0,00    0,00     1  |__java
+20:29:51            -     15511    0,00    0,00    0,00    0,00     0  |__java
+20:29:51            -     15512    0,00    0,00    0,00    0,00     0  |__java
+20:29:51            -     15513    0,00    0,00    0,00    0,00     0  |__java
+20:29:51            -     15514    0,00    0,00    0,00    0,00     1  |__java
+
+Average:         TGID       TID    %usr %system  %guest    %CPU   CPU  Command
+Average:        15502         -    0,33    0,33    0,00    0,67     -  java
+Average:            -     15502    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15503    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15504    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15505    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15506    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15507    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15508    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15509    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15510    0,00    0,33    0,00    0,33     -  |__java
+Average:            -     15511    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15512    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15513    0,00    0,00    0,00    0,00     -  |__java
+Average:            -     15514    0,00    0,00    0,00    0,00     -  |__java
+```
+我们可以看到线程号为15510的消耗了很多资源。我们在通过jstack将程序的线程信息全部导出来分析`jstack -l 1187 > t.txt`
+```bash
+[root@SextoyTRC ~]# cat t.txt 
+2017-01-22 20:34:51
+Full thread dump Java HotSpot(TM) Client VM (25.111-b14 mixed mode):
+
+"Attach Listener" #12 daemon prio=9 os_prio=0 tid=0xabd04c00 nid=0x3ea3 runnable [0x00000000]
+   java.lang.Thread.State: RUNNABLE
+
+   Locked ownable synchronizers:
+	- None
+
+"DestroyJavaVM" #11 prio=5 os_prio=0 tid=0xb6906800 nid=0x3c8f waiting on condition [0x00000000]
+   java.lang.Thread.State: RUNNABLE
+
+   Locked ownable synchronizers:
+	- None
+
+"Thread-3" #10 prio=5 os_prio=0 tid=0xb6992400 nid=0x3c9a waiting on condition [0xab909000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+	at java.lang.Thread.sleep(Native Method)
+	at PidstatTest$IdleThread.run(PidstatTest.java:17)
+
+   Locked ownable synchronizers:
+	- None
+
+"Thread-2" #9 prio=5 os_prio=0 tid=0xb6991000 nid=0x3c99 waiting on condition [0xab95a000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+	at java.lang.Thread.sleep(Native Method)
+	at PidstatTest$IdleThread.run(PidstatTest.java:17)
+
+   Locked ownable synchronizers:
+	- None
+
+"Thread-1" #8 prio=5 os_prio=0 tid=0xb698fc00 nid=0x3c98 waiting on condition [0xab9ab000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+	at java.lang.Thread.sleep(Native Method)
+	at PidstatTest$IdleThread.run(PidstatTest.java:17)
+
+   Locked ownable synchronizers:
+	- None
+
+"Thread-0" #7 prio=5 os_prio=0 tid=0xb698e800 nid=0x3c97 runnable [0xab9fc000]
+   java.lang.Thread.State: RUNNABLE
+	at java.io.FileOutputStream.writeBytes(Native Method)
+	at java.io.FileOutputStream.write(FileOutputStream.java:326)
+	at java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:82)
+	at java.io.BufferedOutputStream.flush(BufferedOutputStream.java:140)
+	- locked <0xaf2b8868> (a java.io.BufferedOutputStream)
+	at java.io.PrintStream.write(PrintStream.java:482)
+	- locked <0xaf2b2360> (a java.io.PrintStream)
+	at sun.nio.cs.StreamEncoder.writeBytes(StreamEncoder.java:221)
+	at sun.nio.cs.StreamEncoder.implFlushBuffer(StreamEncoder.java:291)
+	at sun.nio.cs.StreamEncoder.flushBuffer(StreamEncoder.java:104)
+	- locked <0xaf2b2300> (a java.io.OutputStreamWriter)
+	at java.io.OutputStreamWriter.flushBuffer(OutputStreamWriter.java:185)
+	at java.io.PrintStream.write(PrintStream.java:527)
+	- locked <0xaf2b2360> (a java.io.PrintStream)
+	at java.io.PrintStream.print(PrintStream.java:669)
+	at PidstatTest$BusyThread.run(PidstatTest.java:7)
+
+   Locked ownable synchronizers:
+	- None
+
+"Service Thread" #6 daemon prio=9 os_prio=0 tid=0xb6984000 nid=0x3c95 runnable [0x00000000]
+   java.lang.Thread.State: RUNNABLE
+
+   Locked ownable synchronizers:
+	- None
+
+"C1 CompilerThread0" #5 daemon prio=9 os_prio=0 tid=0xb6980800 nid=0x3c94 waiting on condition [0x00000000]
+   java.lang.Thread.State: RUNNABLE
+
+   Locked ownable synchronizers:
+	- None
+
+"Signal Dispatcher" #4 daemon prio=9 os_prio=0 tid=0xb697f000 nid=0x3c93 runnable [0x00000000]
+   java.lang.Thread.State: RUNNABLE
+
+   Locked ownable synchronizers:
+	- None
+
+"Finalizer" #3 daemon prio=8 os_prio=0 tid=0xb6964400 nid=0x3c92 in Object.wait() [0xabefe000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0xaf2b29a8> (a java.lang.ref.ReferenceQueue$Lock)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:143)
+	- locked <0xaf2b29a8> (a java.lang.ref.ReferenceQueue$Lock)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:164)
+	at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:209)
+
+   Locked ownable synchronizers:
+	- None
+
+"Reference Handler" #2 daemon prio=10 os_prio=0 tid=0xb6961400 nid=0x3c91 in Object.wait() [0xac0af000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait(Native Method)
+	- waiting on <0xaf2b2b48> (a java.lang.ref.Reference$Lock)
+	at java.lang.Object.wait(Object.java:502)
+	at java.lang.ref.Reference.tryHandlePending(Reference.java:191)
+	- locked <0xaf2b2b48> (a java.lang.ref.Reference$Lock)
+	at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:153)
+
+   Locked ownable synchronizers:
+	- None
+
+"VM Thread" os_prio=0 tid=0xb695cc00 nid=0x3c90 runnable 
+
+"VM Periodic Task Thread" os_prio=0 tid=0xb6986800 nid=0x3c96 waiting on condition 
+
+JNI global references: 7
+```
+我们可以看到线程NID为0x3c97的转化为10进制后，刚好是15511，磁盘I/O也是性能的一大瓶颈。使用pidstat也可以监测进程内线程的IO。
+```
+public class PidstatTest{
+	
+	public static class BusyIOThread extends Thread{
+		@Override
+		public void run() {
+			while(true){
+				try {
+					PrintWriter pw = new PrintWriter(new File("temp.txt"));
+					for(int i=0;i<10;i++){
+						pw.println("i am a good man " + i);
+					}
+					pw.close();
+					BufferedReader br = new BufferedReader(new FileReader(new File("temp.txt")));
+					String str = null;
+					try {
+						while((str = br.readLine())  != null){
+							System.out.println(str);
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}finally{
+						try {
+							br.close();
+						} catch (IOException e) {
+						}
+					}
+					
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+				
+			}
+		}
+	}
+	
+	public static class IdleIOThread extends Thread{
+		@Override
+		public void run() {
+			while(true){
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public static void main(String[] args) {
+		
+		new PidstatTest.BusyIOThread().start();
+		new PidstatTest.IdleIOThread().start();
+		new PidstatTest.IdleIOThread().start();
+		new PidstatTest.IdleIOThread().start();
+		
+	}
+}
+```
+通过加上参数`-d`表明添加监控对象磁盘IO
+```bash
+[root@SextoyTRC ~]# pidstat -p 17154 -d -t 1 3
+Linux 2.6.32-042stab113.11 (SextoyTRC) 	22.1.2017 	_i686_	(24 CPU)
+
+20:58:48         TGID       TID   kB_rd/s   kB_wr/s kB_ccwr/s  Command
+20:58:49        17154         -      0,00   1376,00      0,00  java
+20:58:49            -     17154      0,00      0,00      0,00  |__java
+20:58:49            -     17155      0,00      0,00      0,00  |__java
+20:58:49            -     17156      0,00      0,00      0,00  |__java
+20:58:49            -     17157      0,00      0,00      0,00  |__java
+20:58:49            -     17158      0,00      0,00      0,00  |__java
+20:58:49            -     17159      0,00      0,00      0,00  |__java
+20:58:49            -     17160      0,00      0,00      0,00  |__java
+20:58:49            -     17161      0,00      0,00      0,00  |__java
+20:58:49            -     17162      0,00      0,00      0,00  |__java
+20:58:49            -     17163      0,00   1376,00      0,00  |__java
+20:58:49            -     17164      0,00      0,00      0,00  |__java
+20:58:49            -     17165      0,00      0,00      0,00  |__java
+20:58:49            -     17166      0,00      0,00      0,00  |__java
+
+20:58:49         TGID       TID   kB_rd/s   kB_wr/s kB_ccwr/s  Command
+20:58:50        17154         -      0,00   1392,00      0,00  java
+20:58:50            -     17154      0,00      0,00      0,00  |__java
+20:58:50            -     17155      0,00      0,00      0,00  |__java
+20:58:50            -     17156      0,00      0,00      0,00  |__java
+20:58:50            -     17157      0,00      0,00      0,00  |__java
+20:58:50            -     17158      0,00      0,00      0,00  |__java
+20:58:50            -     17159      0,00      0,00      0,00  |__java
+20:58:50            -     17160      0,00      0,00      0,00  |__java
+20:58:50            -     17161      0,00      0,00      0,00  |__java
+20:58:50            -     17162      0,00      0,00      0,00  |__java
+20:58:50            -     17163      0,00   1392,00      0,00  |__java
+20:58:50            -     17164      0,00      0,00      0,00  |__java
+20:58:50            -     17165      0,00      0,00      0,00  |__java
+20:58:50            -     17166      0,00      0,00      0,00  |__java
+
+20:58:50         TGID       TID   kB_rd/s   kB_wr/s kB_ccwr/s  Command
+20:58:51        17154         -      0,00   1376,00      0,00  java
+20:58:51            -     17154      0,00      0,00      0,00  |__java
+20:58:51            -     17155      0,00      0,00      0,00  |__java
+20:58:51            -     17156      0,00      0,00      0,00  |__java
+20:58:51            -     17157      0,00      0,00      0,00  |__java
+20:58:51            -     17158      0,00      0,00      0,00  |__java
+20:58:51            -     17159      0,00      0,00      0,00  |__java
+20:58:51            -     17160      0,00      0,00      0,00  |__java
+20:58:51            -     17161      0,00      0,00      0,00  |__java
+20:58:51            -     17162      0,00      0,00      0,00  |__java
+20:58:51            -     17163      0,00   1376,00      0,00  |__java
+20:58:51            -     17164      0,00      0,00      0,00  |__java
+20:58:51            -     17165      0,00      0,00      0,00  |__java
+20:58:51            -     17166      0,00      0,00      0,00  |__java
+
+Average:         TGID       TID   kB_rd/s   kB_wr/s kB_ccwr/s  Command
+Average:        17154         -      0,00   1381,33      0,00  java
+Average:            -     17154      0,00      0,00      0,00  |__java
+Average:            -     17155      0,00      0,00      0,00  |__java
+Average:            -     17156      0,00      0,00      0,00  |__java
+Average:            -     17157      0,00      0,00      0,00  |__java
+Average:            -     17158      0,00      0,00      0,00  |__java
+Average:            -     17159      0,00      0,00      0,00  |__java
+Average:            -     17160      0,00      0,00      0,00  |__java
+Average:            -     17161      0,00      0,00      0,00  |__java
+Average:            -     17162      0,00      0,00      0,00  |__java
+Average:            -     17163      0,00   1381,33      0,00  |__java
+Average:            -     17164      0,00      0,00      0,00  |__java
+Average:            -     17165      0,00      0,00      0,00  |__java
+Average:            -     17166      0,00      0,00      0,00  |__java
+```
+我们可以看到线程ID为17163的读写的比较频繁，我们可以通过导出线程信息，来查看这个线程具体是做什么的。这里就不在赘述了，和之前的一样。除此之外，我们还可以通过`-r`参数查看进程的内存的具体详情。
+```bash
+[root@SextoyTRC ~]# pidstat -p 17154 -r 1 3
+Linux 2.6.32-042stab113.11 (SextoyTRC) 	22.1.2017 	_i686_	(24 CPU)
+
+21:05:16          PID  minflt/s  majflt/s     VSZ    RSS   %MEM  Command
+21:05:17        17154      8,00      0,00  195168  15836   3,02  java
+21:05:18        17154      9,00      0,00  195168  15836   3,02  java
+21:05:19        17154      0,00      0,00  195168  15836   3,02  java
+Average:        17154      5,67      0,00  195168  15836   3,02  java
+```
+其中 minflt 表示每秒不需要从瓷盘中调出内存页的总数，majflt表示需要从瓷盘中调出的内存页总数，VSZ表示使用的虚拟内存，RSS表示使用的物理内存，后面是使用的MEM占比。
+
