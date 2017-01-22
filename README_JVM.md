@@ -718,3 +718,15 @@ User 1 is been removed
 4. bash ```CATALINA_OPTS="Xloggc:/var/tmp/gc.log -Xmx1024m -Xms512m -XX:+PrintGCDetails -XX:+ParallelGC``` => `158/s`
 
 
+## 性能监测工具
+
+### linux 性能监控工具
+
+#### 显示系统整体的使用情况 top
+![top命令行](https://i.imgsafe.org/45bd8b2ace.png)
+
+1. 第一行分别表示，当前时间，系统运行时间，当前用户，平均负载 第二行分别表示，当前总进程，正在运行进程，睡眠进程，停止的进程，僵尸进程。后几行显示CPU，内存，交换区内存的使用情况。
+2. 下面的显示的是具体的进程详情。 [CPU和内存的区别](http://www.differencebetween.com/difference-between-cpu-and-vs-ram/)
+ 
+#### 类似的还有vmstat , iostat
+
