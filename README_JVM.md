@@ -704,6 +704,17 @@ User 1 is been removed
 ### Finallize对GC的影响
 1. Java提供了一个和c++析构函数类似的函数叫做finallize，默认情况下是不建议使用finallize进行垃圾回收的。之前也说过，他可能会外泄this引用，复活对象，造成内存泄漏，函数finallize是由FinallizerThread线程处理的。也就是说每一个对象即将被回收的时候都会加入到FinalizeThread的执行队列中。这个和我们之前说过的软引用是一样的。
 
-2. 注意我们的gc在进行垃圾回收的时候，只会收集不可达到的对象，如果我们在finallize方法中外泄了this引用，就会导致那一块内存永远释放不了。并且由于对象在释放会时候会进入到FinallizeThread监测的队列中，一个个的出队列，所以如果finallize方法使用的时间过长，则可能从整体上拖垮程序的性能，降低垃圾回收的能力。所以一定注意不要轻易使用finallize。![finallize监控队列](https://i.imgsafe.org/3767963b53.png)
+2. 注意我们的gc在进行垃圾回收的时候，只会收集不可达到的对象，如果我们在finallize方法中外泄了this引用，就会导致那一块内存永远释放不了。并且由于对象在释放会时候会进入到FinallizeThread监测的队列中，只有从检测队列中出队列的对象才能被释放掉，因为Finallizer有一个强引用指向对象，所以如果finallize方法使用的时间过长，则可能从整体上拖垮程序的性能，降低垃圾回收的能力。所以一定注意不要轻易使用finallize。具体的流程如图：![finallize监控队列](https://i.imgsafe.org/3767963b53.png)
+
+## 垃圾回收器对TOMCAT性能的影响实验
+
+#### 采用JMeter进行性能监测
+1.  我用15个线程，每个线程请求1000次总共15000次请求。来压测我们的tomcat每秒能够介绍多少个请求。bash```CATALINA_OPTS="Xloggc:/var/tmp/gc.log -Xmx128m -Xms64m -XX:+PrintGCDetails -XX:+UseSerialGC```注意将参数设置在catalina.sh(linux)/catalina.bat(windows) 中，一般设置在第一行即可。我们看看这样的参数得到的结果，`36/s`大概在36个请求每秒左右。
+
+2. bash ```CATALINA_OPTS="Xloggc:/var/tmp/gc.log -Xmx1024m -Xms512m -XX:+PrintGCDetails -XX:+UseSerialGC``` => `82/s`
+
+3. bash ```CATALINA_OPTS="Xloggc:/var/tmp/gc.log -Xmx1024m -Xms512m -XX:+UsePrintGCDetails -XX:+UseParallelGC -XX:+ParallelOldGC -XX:ParallelGCThread=4``` => `156/s`
+
+4. bash ```CATALINA_OPTS="Xloggc:/var/tmp/gc.log -Xmx1024m -Xms512m -XX:+PrintGCDetails -XX:+ParallelGC``` => `158/s`
 
 
