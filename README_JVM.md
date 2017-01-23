@@ -1254,3 +1254,26 @@ public final int getAndSet(int newValue){
 * CAS算法和减小锁粒度。 由于我们的CAS实现原子操作是通过类似自旋来实现的。但是我们前面也说过使用自选的坏处。如果在竞争激烈的场景下，可能很长时间都在循环中。因此我们向是不是可以对那些值比如AtomicInteger的value不把value作为一个整体，而是将value进行拆分，把她们的值分别放入到一个数组里面。然后我们对这个数组保证原子性。这种分离热点的思想。一个经典的例子就是LongAdder的实现。
 ![LongAdder](https://i.imgsafe.org/5bf09cd914.png)
  
+### java内存模型中的一些关于所得应用
+
+#### 原子性
+指不可分割的操作，不能被多线程打扰。比如对int，byte的赋值就是原子操作的，但是比如a++这种高操作就不是原子操作的，因为他有三个步骤1读取，2自加，3赋值。中间是很可能被其他线程干扰导致错误的结果。在32位JVM中，对long和double的赋值操作，由于它们都是64bit的，无法一次性操作，因此对于它们的操作都不是原子的，在并发环境下，可能会出现一些意想不到的错误。 这种问题可以添加volatile，保证变量写入的原子性。
+
+#### 有序性
+现代CPU都支持指令流水线执行，为了保证流水线的顺畅执行，有时候会对指令进行重排序，重排序不会导致单线程的语义错误。但是在多线程操作中就并不能保证语义的正确性。
+```java
+class orderExample{
+	private int flag;
+	private int a;
+	
+	public void write(){
+		a = 10;
+		flag = true;
+	}
+	public void read(){
+		if(flag){
+			System.out.println(a);
+		}
+	}
+}
+```
