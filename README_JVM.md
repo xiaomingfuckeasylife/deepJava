@@ -1240,3 +1240,18 @@ public String appendStr(String str){
 * 使用ThreadLocal 每个线程拥有自己的对象。从而达到无锁的效果，仍然可以保持一致性。
 
 * CAS算法：CAS(V,E,N) 三个参数分别表示需要修改的变量，期待的当前变量的值，N，如果当前值与期待值相同那么就会更新当前变量为为新的值，否则表示有别的线程已经修改了当前变量值，这个时候返回修改后的值。目前大部分的现代处理器都支持原子化的CAS指令。并且在JVM的实现中也用的十分广泛。我们atomic包下面的AtomicInteger，AtomicLong，AtomicReference 等等的信息全部都是通过CAS算法实现的。
+```java
+public final int getAndSet(int newValue){
+	for(;;){
+		int current = get();
+		if(compareAndSet(current,newValue)){ 
+		// compareAndSet 是原子操作的所以不用担心不一致问题
+			return current;
+		}
+	}
+}
+```
+* CAS算法和减小锁粒度。 由于我们的CAS实现原子操作是通过类似自旋来实现的。但是我们前面也说过使用自选的坏处。如果在竞争激烈的场景下，可能很长时间都在循环中。因此我们向是不是可以对那些值比如AtomicInteger的value不把value作为一个整体，而是将value进行拆分，把她们的值分别放入到一个数组里面。然后我们对这个数组保证原子性。这种分离热点的思想。一个经典的例子就是LongAdder的实现。
+![LongAdder](https://i.imgsafe.org/5bf09cd914.png)
+
+
