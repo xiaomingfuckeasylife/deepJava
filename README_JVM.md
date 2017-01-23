@@ -1156,3 +1156,26 @@ Average:        17154      5,67      0,00  195168  15836   3,02  java
 
 * jcmd, 是一个1.7后添加的新的命令，它可以完成上面的命令的很多功能，比如导出堆，打印java进程，查看jvm参数，等等。
 上面知识简单的介绍了这些命令，最主要的还是要大家去看源码，然后一个命令一个命令的消化。否则只是会用，没有任何意义。
+
+### 虚拟机监控工具JConsole
+使用JConsole可以监控java堆，永久区使用情况，类加载情况。
+
+#### 使用JConsole进行远程监控 
+如果要进行远程连接，那么我们必须首先在启动程序前，配置参数，启动命令jstatd，开启一个RMI服务。然后我们的远程客户端才能连接。
+```java
+-Djava.rmi.server.hostname=127.0.0.1
+-Dcom.sun.management.jmxremote 
+-Dcom.sun.management.jmxremote.port=8081 
+-Dcom.sun.management.jmxremote.authenticate=false 
+-Dcom.sun.management.jmxremote.ssl=false
+```
+使用Jconsole连接上以后的图形是这样的
+![Jconsole连接](https://i.imgsafe.org/56275ba763.png)
+
+* 内存监控：eden，survivor等区域的内存都可以看到，并且还可以点击perform gc进行一次强制的full gc.
+* 线程监控：可以查看具体的每个线程的栈信息，以及检查死锁等。
+* 类加载监控：查看已经加载的类数量，卸载的类数量。
+* 虚拟机信息：jvm的一些参数信息。
+
+类似于Jconsole的工具还有virtual VM 以及  Java Misson Console .  如果大家在工作觉得Jconsole的内容还不够细，可以使用刚才说的两款工具。
+
