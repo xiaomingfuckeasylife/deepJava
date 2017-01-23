@@ -1253,5 +1253,4 @@ public final int getAndSet(int newValue){
 ```
 * CAS算法和减小锁粒度。 由于我们的CAS实现原子操作是通过类似自旋来实现的。但是我们前面也说过使用自选的坏处。如果在竞争激烈的场景下，可能很长时间都在循环中。因此我们向是不是可以对那些值比如AtomicInteger的value不把value作为一个整体，而是将value进行拆分，把她们的值分别放入到一个数组里面。然后我们对这个数组保证原子性。这种分离热点的思想。一个经典的例子就是LongAdder的实现。
 ![LongAdder](https://i.imgsafe.org/5bf09cd914.png)
-
-
+ 
