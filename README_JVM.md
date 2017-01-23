@@ -1179,3 +1179,6 @@ Average:        17154      5,67      0,00  195168  15836   3,02  java
 
 类似于Jconsole的工具还有virtual VM 以及  Java Misson Console .  如果大家在工作觉得Jconsole的内容还不够细，可以使用刚才说的两款工具。
 
+## 其他的点什么
+
+### 
