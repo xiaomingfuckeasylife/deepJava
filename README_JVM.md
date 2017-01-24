@@ -1429,3 +1429,19 @@ public class ClInitDeadLock extends Thread{
 	
 }
 ```
+
+### ClassLoader
+ClassLoader主要用于类初始化的加载阶段。主要用于从系统外部获得class二进制数据流。ClassLoader有一个parent字段指向他的双亲类加载器。
+
+#### ClassLoader的类别
+1. ClassLoader的分类，在标准的Java程序中，Java虚拟机会创建三类ClassLoader为整个应用程序服务。他们分别称为Bootstrap ClassLoader (启动类加载器)，Extension ClassLoader(扩展类加载器)，App ClassLoader（应用类加载器）。除此之外，我们还可以自定义类加载器,扩展Java虚拟机获取Class数据的能力。![类加载器](https://i.imgsafe.org/6f625e9810.png)在这些类加载器中启动类加载器完全是由C实现的，它启动的一些类也全都是C实现的代码，所以这个扩展器并没有任何对应的java对象，显示就是null。在虚拟机设计中，使用这种分散的ClassLoader去装载类是有好处的，不同层次的类可以由不同的类加载器加载。从而进行划分。这有助于系统的模块化设计。比如启动类加载器用于加载rt.jar中的类。扩展类用于加载ext包下面的类。用户自定义的加载器加载自己的代码。
+
+2. ClassLoader在进行类加载的时候使用的是双亲委托模式，也就是先去问自己的parent，看他们能不能加载，如果他们不能加载，就自己去加载。判断类加载的时候，应用类加载器会顺着双亲路经往上判断，知道找到启动类加载器。但是启动类加载器不会向下询问，这个委托路线是单向的，理解这一点很重要。
+
+3. 双亲委托模式的弊端，在前文中已经提到，检查类是否已经加载的委托过程是单向的，这样导致的问题是位于高层类加载的类，不能访问由底层类加载器加载的类。
+
+4. 双亲委托模式的补充，在Java平台中，把核心类中提供给外部服务给应用层实现的接口，叫做SPI（service provider Interface）。那么现在的一个主要的问题就是如何在bootstrap classLoader中使用由App ClassLoader加载的类？？？  通过`Thread.getContextClassLoader();Thread.setContextClassLoadser()` 进行实现的。通过这两个方法，可以把一个ClassLoader置于一个线程实例之中，使该ClassLoader称为一个相对共享的实例。默认情况下ContextClassLoader() 就是App ClassLoader。这样如果我们在Bootstrap classLoader加载的类中可以，使用ContextClassLoader，然后使用这个类加载器去加载由App ClassLoader加载的类的实例。
+
+5. 突破双亲模式。 如果我们不喜欢双亲模式的类加载方式，可以通过即成ClassLoader重写loadClass方法。
+
+6. 热替换。
