@@ -2,7 +2,7 @@
 
 ### 讨论点
 
-1.  这个是我在看AbstractMap的源码片段发现了大量的这样的类似的代码
+*  这个是我在看AbstractMap的源码片段发现了大量的这样的类似的代码
 ```java
 public boolean containsValue(Object value) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
@@ -39,4 +39,27 @@ public boolean containsValue(Object value) {
 ```
 上面是修改后的代码，这样的代码看起来是不是清爽很多。但是其实这个写法的效率是很低的。我在注释部分已经详细说明了。
 
-2. sdf sdfsfsf
+* 看下面的一段代码：还是很有意思的。
+```
+ public String toString() {
+        Iterator<Entry<K,V>> i = entrySet().iterator();
+        if (! i.hasNext())
+            return "{}";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        for (;;) {
+            Entry<K,V> e = i.next();
+            K key = e.getKey();
+            V value = e.getValue();
+            // 这个地方和当前对象进行比较是为了防止进入死循环。infinite loop 
+            sb.append(key   == this ? "(this Map)" : key);
+            sb.append('=');
+            sb.append(value == this ? "(this Map)" : value);
+            if (! i.hasNext())
+                return sb.append('}').toString();
+            sb.append(", ");
+        }
+    }
+```
+
