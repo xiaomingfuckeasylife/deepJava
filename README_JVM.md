@@ -1291,5 +1291,27 @@ class orderExample{
  * 线程的所有操作都先于Thread.join()
  * 线程的中断先于被中断线程的代码
  * 对象的构造函数执行结束在finalize()之前
- 
- 
+
+## Class 
+
+### Class文件
+```cpp
+ClassFile {
+  u4			magic;  // 魔头
+  u2			minor_version; //  小版本号
+  u2			major_version; //  大版本号
+  u2			constant_pool_count;  // 常量池
+  cp_info		constant_pool[constant_pool_count -1];  // 常量池的表项
+  u2			access_flags;	//访问修饰符
+  u2			this_class;	//代表自身类的修饰符
+  u2			super_class;	//父类引用
+  u2			interface_count;//接口数量
+  u2			interface[interfaces_count];//接口实现数量
+  u2			fields_count; //字段数量 
+  field_info		fields[fields_count]; //字段描述
+  u2			methods_count;
+  method_info		methods[methods_count];
+  u2			attribute_count;
+  attribute_info	attributes[attribute_count];
+}
+```
