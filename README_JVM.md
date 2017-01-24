@@ -1359,6 +1359,73 @@ public class InitTest{
 }
 ```
 ```
+[Loaded test.InitTest$Father from file:/Users/clark/git/forum_demo/forum_demo/target/test-classes/]
+[Loaded test.InitTest$Child from file:/Users/clark/git/forum_demo/forum_demo/target/test-classes/]
 this is father !
 10
+```
+我们可以看到子类并没有初始化，但是我们可以看到Child类已经被加载入内存。
+
+#### 类的加载
+* 通过类的全名，获取类的二进制数据流。
+* 解析类的二进制数据流为方法区内的数据结构。
+* 创建java.lang.Class类的实例，表示该类型。 （Class对象，是进行反射的前提）
+
+#### 连接之验证类
+![验证类](https://i.imgsafe.org/6c463e3881.png)
+
+#### 连接之准备
+这个阶段会为类分配响应的内存空间。并且设置初始值。
+![各种类型的初始值](https://i.imgsafe.org/6c5309019a.png)
+
+#### 连接之解析类
+这个阶段将类，接口，字段，方法的符号引用转化为指针指向具体的地址。
+
+#### 初始化
+初始化阶段执行的方法是`<clinit>` 包括一些静态字段以及一些静态方法的赋值。 注意类的初始化并不等同与类的对象的初始化。类的对象的初始化，会初始化一些成员属性。但是在类的初始化中，并不会。最后需要说的是，`<clinit>`函数会通过加锁保证线程安全性。那么这个时候，如果线程1初始化类A，这个时候在类A的初始化的过程中，会需要获取类B的锁。而这个时候线程B已经拥有初始化了，并且它需要类A的锁完成初始化。这个时候，线程1，和线程2就成了一个闭环的死锁。
+```java
+public class ClInitDeadLock extends Thread{
+	
+	private String className ;
+	
+	static class A{
+		static {
+			try {
+				Class.forName("test.ClInitDeadLock$B");
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	static class B{
+		static {
+			try {
+				Class.forName("test.ClInitDeadLock$A");
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public ClInitDeadLock(String className) {
+		this.className = className;
+	}
+	
+	@Override
+	public void run() {
+		try {
+			Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		
+		new ClInitDeadLock("test.ClInitDeadLock$A").start();
+		new ClInitDeadLock("test.ClInitDeadLock$B").start();
+	}
+	
+}
 ```
