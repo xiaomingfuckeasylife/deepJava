@@ -1295,6 +1295,7 @@ class orderExample{
 ## Class 
 
 ### Class文件
+![class文件](https://i.imgsafe.org/6b789a6b0f.png)
 ```cpp
 ClassFile {
   u4			magic;  // 魔头
@@ -1309,9 +1310,10 @@ ClassFile {
   u2			interface[interfaces_count];//接口实现数量
   u2			fields_count; //字段数量 
   field_info		fields[fields_count]; //字段描述
-  u2			methods_count;
-  method_info		methods[methods_count];
-  u2			attribute_count;
-  attribute_info	attributes[attribute_count];
+  u2			methods_count;  // 方法数量
+  method_info		methods[methods_count]; //方法描述
+  u2			attribute_count; // 属性数量
+  attribute_info	attributes[attribute_count]; //属性描述
 }
 ```
+其中u1,u2,u4,u8分别表示无符号整型单子节，2字节，4字节，8字节。
