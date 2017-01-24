@@ -2,7 +2,7 @@
 
 ### 讨论点
 
-*  这个是我在看AbstractMap的源码片段发现了大量的这样的类似的代码
+**  这个是我在看AbstractMap的源码片段发现了大量的这样的类似的代码
 ```java
 public boolean containsValue(Object value) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
@@ -39,7 +39,7 @@ public boolean containsValue(Object value) {
 ```
 上面是修改后的代码，这样的代码看起来是不是清爽很多。但是其实这个写法的效率是很低的。我在注释部分已经详细说明了。
 
-* 看下面的一段代码：还是很有意思的。
+**  看下面的一段代码：还是很有意思的。
 ```
  public String toString() {
         Iterator<Entry<K,V>> i = entrySet().iterator();
