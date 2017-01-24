@@ -1316,4 +1316,8 @@ ClassFile {
   attribute_info	attributes[attribute_count]; //属性描述
 }
 ```
-其中u1,u2,u4,u8分别表示无符号整型单子节，2字节，4字节，8字节。
+其中u1,u2,u4,u8分别表示无符号整型单子节，2字节，4字节，8字节。由于我们在实际开发过程中直接使用class文件的场景十分稀少，所以这个地方我就不将上述结构体的字段一个个的说明了。
+
+### 操作字节码ASM
+
+ASM是一款字节码的操作库。很多有名的软件都是基于它开发出来的。比如AspectJ，Clojure，Eclipse，spring，以及CGlib都是ASM的使用者。与CGlib以及Javaassist相比ASM的性能比他们高很多。但是由于过于底层，所以复杂度还是有的。因此开发人员一般是不直接便携ASM对class文件进行编写的。
