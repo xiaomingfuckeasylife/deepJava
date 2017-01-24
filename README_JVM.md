@@ -1321,3 +1321,44 @@ ClassFile {
 ### 操作字节码ASM
 
 ASM是一款字节码的操作库。很多有名的软件都是基于它开发出来的。比如AspectJ，Clojure，Eclipse，spring，以及CGlib都是ASM的使用者。与CGlib以及Javaassist相比ASM的性能比他们高很多。但是由于过于底层，所以复杂度还是有的。因此开发人员一般是不直接便携ASM对class文件进行编写的。
+
+## ClassLoader
+
+### Class的加载流程
+系统装载Class类型可以分为加载，连接，初始化三个步骤。其中，连接又可以分为验证，准备，解析三步。
+![Class Init](https://i.imgsafe.org/6bfdd63aa4.png)
+
+#### 类加载的条件
+类不会全部加载，只有在`主动`使用的时候才会被加载，下面为主动加载的情况：
+* 使用new关键字，或者使用反射，克隆，反序列化。
+* 当调用了static方法时候，即使用了字节码invokestatic指令
+* 使用了类或者接口的静态字段（不是final的）时候。
+* 使用了反射包下面的方法时候。
+* 初始化子类时候，父类会首先初始化。
+* 作为启动虚拟机，含有main方法的类。
+```java
+public class InitTest{
+	
+	static class Father{
+		protected static int d = 10;
+		static{
+			System.out.println("this is father !");
+		}
+	}
+	
+	static class Child extends Father{
+		static{
+			System.out.println("this is child !");
+		}
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(InitTest.Child.d);
+	}
+	
+}
+```
+```
+this is father !
+10
+```
