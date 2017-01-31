@@ -3,7 +3,7 @@ All JAVA stuff
 
 
 ## Table of Contents
-- [JVM] (#JVM)
+- [JVM](#JVM)
 - [Concurrency](#Concurrency)
 
 ### JVM
