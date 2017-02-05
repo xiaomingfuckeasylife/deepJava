@@ -26,7 +26,7 @@ public class UnsafeSequence {
 }
 ```
 this is not a thread safe program.  as value++ has three steps ( read , add , write )
-[unsafeSequence](https://i.imgsafe.org/58a3c9c6d1.png)
+![unsafeSequence](https://i.imgsafe.org/58a3c9c6d1.png)
 UnsafeSequence illustrates a common concurrency hazard called a race condition. we can using synchronized machanism to  coordinate the access order . 
 ```java
 public class UnsafeSequence {
