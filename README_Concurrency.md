@@ -115,8 +115,7 @@ Java provides a built-in locking mechanism for enforcing atomicity: the synchron
 
 #### Reentrancy
 When a thread requests a lock that is already held by another thread, the requesting thread blocks. But because `intrinsic locks are reentrant`, if a thread tries to acquire a lock that it already holds, the request succeeds. Reentrancy means that locks are acquired on a per-thread rather than per-invocation basis.7 Reentrancy is implemented by associating with each lock an acquisition count and an owning thread. When the count is zero, the lock is considered unheld. When a thread acquires a previously unheld lock, the JVM records the owner and sets the acquisition count to one. If that same thread acquires the lock again, the count is incremented, and when the owning thread exits the synchronized block, the count is decremented. When the count reaches zero, the lock is released.
-Reentrancy facilitates encapsulation of locking behavior, and thus simplifies the development of object-oriented concurrent code. Without reentrant locks, the very natural-looking code in the example below, in which a subclass overrides a synchronized method and then calls the superclass method, would deadlock. Because the doSomething methods in Widget and LoggingWidget are both synchronized, each tries to acquire the lock on the Widget before proceeding. But if intrinsic
-locks were not reentrant, the call to super.doSomething would never be able to acquire the lock because it would be considered already held, and the thread would permanently stall waiting for a lock it can never acquire. Reentrancy savesus from deadlock in situations like this.
+Reentrancy facilitates encapsulation of locking behavior, and thus simplifies the development of object-oriented concurrent code. Without reentrant locks, the very natural-looking code in the example below, in which a subclass overrides a synchronized method and then calls the superclass method, would deadlock. Because the work methods in Father and Son are both synchronized, each tries to acquire the lock on the Father before proceeding. But if intrinsic locks were not reentrant, the call to super.doSomething would never be able to acquire the lock because it would be considered already held, and the thread would permanently stall waiting for a lock it can never acquire. Reentrancy savesus from deadlock in situations like this.
 ```java
 public class Father {
   public synchronized void work(){
@@ -129,3 +128,41 @@ public class son extends Father{
   }
 }
 ```
+### Guarding state with locks 
+Compound actions on shared state, such as incrementing a hit counter (readmodifywrite) or lazy initialization (check-then-act), must be made atomic to avoid race conditions. Holding a lock for the entire duration of a compound action can make that compound action atomic. However, just wrapping the compound action with a synchronized block is not sufficient; if synchronization is used to coordinate access to a variable, it is needed everywhere that variable is accessed. Further, when using locks to coordinate access to a variable, the same lock must be used wherever that variable is accessed. For each mutable state variable that may be accessed by more than one thread, all accesses to that variable must be performed with the same lock held. In this case, we say that the variable is guarded by that lock.`Every shared, mutable variable should be guarded by exactly one lock.Make it clear to maintainers which lock that is. For every invariant that involves more than one variable, all the variables involved in that invariant must be guarded by the same lock.`
+
+### Liveness and performance
+```java
+@ThreadSafe
+public class CachedFactorizer implements Servlet {
+	@GuardedBy("this") private BigInteger lastNumber;
+	@GuardedBy("this") private BigInteger[] lastFactors;
+	@GuardedBy("this") private long hits;
+	@GuardedBy("this") private long cacheHits;
+	public synchronized long getHits() { return hits; }
+	public synchronized double getCacheHitRatio() {
+		return (double) cacheHits / (double) hits;
+	}
+	public void service(ServletRequest req, ServletResponse resp) {
+		BigInteger i = extractFromRequest(req);
+		BigInteger[] factors = null;
+		synchronized (this) {
+		++hits;
+		if (i.equals(lastNumber)) {
+			++cacheHits;
+			factors = lastFactors.clone();
+		}
+		}
+		if (factors == null) {
+			factors = factor(i);
+			synchronized (this) {
+			lastNumber = i;
+			lastFactors = factors.clone();
+		}
+		}
+		encodeIntoResponse(resp, factors);
+	}
+}
+```
+CachedFactorizer no longer uses AtomicLong for the hit counter, instead reverting to using a long field. It would be safe to use AtomicLong here, but there is less benefit than there was in CountingFactorizer. Atomic variables are useful for effecting atomic operations on a single variable, but since we are already using synchronized blocks to construct atomic operations, using two different synchronization mechanisms would be confusing and would offer no performance or safety benefit.
+	
