@@ -75,7 +75,17 @@ public Date parse(String dateStr , String format) throws Exception{
   SimpleDateFormat sdf = new SimpleDateFormat(format);
   return sdf.parse(dateStr);
 }
-// now i do not have an example of a unsafe class made of entirely of thread safe classes . TO-DO
+// the program is used safe class AtomicLong but still this is not a thread safe class . it contains race condition  problem.
+public class Unsafe{
+  private AtomicLong count = new AtomicLong();
+  public void service() {
+		if (count.get() % 2 == 0) {
+			count.get();
+		} else {
+			count.addAndGet(1);
+		}
+	}
+}
 ```
 
 #### what is thread safety ?
@@ -97,3 +107,25 @@ public class StatelessFactorizer implements Servlet {
 #### Compound actions 
 Operations A and B are atomic with respect to each other if, from the perspective of a thread executing A, when another thread executes B, either all of B has executed or none of it has. An atomic operation is one that is atomic with respect to all operations, including itself, that operate on the same state.  Where practical, use existing thread-safe objects, like AtomicLong, to manage your class’s state. It is simpler to reason about the possible states and state transitions for existing thread-safe objects than it is for arbitrary state variables, and this makes it easier to maintain and verify thread safety.
 
+### Lock 
+To preserve state consistency, update related state variables in a single atomic operation.
+
+#### Intrinsic locks
+Java provides a built-in locking mechanism for enforcing atomicity: the synchronized block. A synchronized block has two parts: a reference to an object that will serve as the lock, and a block of code to be guarded by that lock. Every Java object can implicitly act as a lock for purposes of synchronization; these built-in locks are called `intrinsic locks or monitor locks`. The lock is automatically acquired by the executing thread before entering a synchronized block and automatically released when control exits the synchronized block, whether by the normal control path or by throwing an exception out of the block. The only way to acquire an intrinsic lock is to enter a synchronized block or method guarded by that lock. Intrinsic locks in Java act as mutexes (or mutual exclusion locks), which means that at most one thread may own the lock. When thread A attempts to acquire a lock held by thread B, A must wait, or block, until B releases it. If B never releases the lock, A waits forever.
+
+#### Reentrancy
+When a thread requests a lock that is already held by another thread, the requesting thread blocks. But because `intrinsic locks are reentrant`, if a thread tries to acquire a lock that it already holds, the request succeeds. Reentrancy means that locks are acquired on a per-thread rather than per-invocation basis.7 Reentrancy is implemented by associating with each lock an acquisition count and an owning thread. When the count is zero, the lock is considered unheld. When a thread acquires a previously unheld lock, the JVM records the owner and sets the acquisition count to one. If that same thread acquires the lock again, the count is incremented, and when the owning thread exits the synchronized block, the count is decremented. When the count reaches zero, the lock is released.
+Reentrancy facilitates encapsulation of locking behavior, and thus simplifies the development of object-oriented concurrent code. Without reentrant locks, the very natural-looking code in the example below, in which a subclass overrides a synchronized method and then calls the superclass method, would deadlock. Because the doSomething methods in Widget and LoggingWidget are both synchronized, each tries to acquire the lock on the Widget before proceeding. But if intrinsic
+locks were not reentrant, the call to super.doSomething would never be able to acquire the lock because it would be considered already held, and the thread would permanently stall waiting for a lock it can never acquire. Reentrancy savesus from deadlock in situations like this.
+```java
+public class Father {
+  public synchronized void work(){
+    ...
+  }
+}
+public class son extends Father{
+  public synchroniezd void work(){
+    super.work();
+  }
+}
+```
