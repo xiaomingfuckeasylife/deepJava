@@ -165,4 +165,5 @@ public class CachedFactorizer implements Servlet {
 }
 ```
 CachedFactorizer no longer uses AtomicLong for the hit counter, instead reverting to using a long field. It would be safe to use AtomicLong here, but there is less benefit than there was in CountingFactorizer. Atomic variables are useful for effecting atomic operations on a single variable, but since we are already using synchronized blocks to construct atomic operations, using two different synchronization mechanisms would be confusing and would offer no performance or safety benefit.
-	
+The restructuring of CachedFactorizer provides a balance between simplicity(synchronizing the entire method) and concurrency (synchronizing the shortest possible code paths).
+Avoid holding locks during lengthy computations or operations at risk of not completing quickly such as network or console I/O.
