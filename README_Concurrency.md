@@ -25,7 +25,7 @@ public class UnsafeSequence {
   }
 }
 ```
-this is not a thread safe program.  as value++ has three steps ( read , add , write )
+this is not a thread safe program.  as value++ has three steps ( read , modify , write )
 ![unsafeSequence](https://i.imgsafe.org/58a3c9c6d1.png)
 UnsafeSequence illustrates a common concurrency hazard called a race condition. we can using synchronized machanism to  coordinate the access order . 
 ```java
@@ -57,4 +57,44 @@ Frameworks introduce concurrency into applications by calling application compon
 * Remote Method Invocation. RMI lets you invoke methods on objects running in another JVM. When you call a remote method with RMI, the method arguments are packaged (marshaled) into a byte stream and shipped over the network to the remote JVM, where they are unpacked (unmarshaled) and passed to the remote method. When the RMI code calls your remote object, in what thread does that call happen? You don’t know, but it’s definitely not in a thread you created—your object gets called in a thread managed by RMI. How many threads does RMI create? Could the same remote method on the same remote object be called simultaneously in multiple RMI threads?4 A remote object must guard against two thread safety hazards: properly coordinating access to state that may be shared with other objects, and properly coordinating access to the state of the remote object itself (since the same object may be called in multiple threads simultaneously). Like servlets, RMI objects should be prepared for multiple simultaneous calls and must provide their own thread safety.
 
 * Swing and AWT. GUI applications are inherently asynchronous. Users may select a menu item or press a button at any time, and they expect that the application will respond promptly even if it is in the middle of doing something else. Swing and AWT address this problem by creating a separate thread for handling user-initiated events and updating the graphical view presented to the user.Swing components, such as JTable, are not thread-safe. Instead, Swing programs achieve their thread safety by confining all access to GUI components to the event thread. If an application wants to manipulate the GUI from outside the event thread, it must cause the code that will manipulate the GUI to run in the event thread instead. When the user performs a UI action, an event handler is called in the event thread to perform whatever operation the user requested. If the handler needs to access application state that is also accessed from other threads (such as a document being edited), then the event handler, along with any other code that accesses that state, must do so in a thread-safe manner.
+
+### Thread Safety 
+
+Whenever more than one thread accesses a given state variable, and one of them might write to it, they all must coordinate their access to it using synchronization.
+If multiple threads access the same mutable state variable without appropriate synchronization, your program is broken. There are three ways to fix it:
+* Don’t share the state variable across threads;
+* Make the state variable immutable; or
+* Use synchronization whenever accessing the state variable.
+
+It is far easier to design a class to be thread-safe than to retrofit it for thread safety later. When designing thread-safe classes, good object-oriented techniques encapsulation, immutability, and clear specification of invariants are your best friends.
+Is a thread-safe program one that is constructed entirely of thread-safe classes? Not necessarily a program that consists entirely of thread-safe classes may not be thread-safe, and a thread-safe program may contain classes that are not thread-safe.In any case, the concept of a thread-safe class makes sense only if the class encapsulates its own state. Thread safety may be a term that is applied to code, but it is about state, and it can only be applied to the entire body of code that encapsulates its state, which may be an object or an entire program.
+
+```java
+// SimpleDateFormat is not a thread safe class but this is a thread safe program.
+public Date parse(String dateStr , String format) throws Exception{
+  SimpleDateFormat sdf = new SimpleDateFormat(format);
+  return sdf.parse(dateStr);
+}
+// now i do not have an example of a unsafe class made of entirely of thread safe classes . TO-DO
+```
+
+#### what is thread safety ?
+A class is thread-safe if it behaves correctly when accessed from multiple threads, regardless of the scheduling or interleaving of the execution of those threads by the runtime environment, and with no additional synchronization or other coordination on the part of the calling code.Thread-safe classes encapsulate any needed synchronization so that clients need not provide their own.
+Stateless objects are always thread-safe. it has no fields and references no fields from other classes.
+```java
+public class StatelessFactorizer implements Servlet {
+  public void service(ServletRequest req, ServletResponse resp) {
+    BigInteger i = extractFromRequest(req);
+    BigInteger[] factors = factor(i);
+    encodeIntoResponse(resp, factors);
+  }
+}
+```
+
+#### Atomicity
+
+* `Race conditions` : The most common type of race condition is check-then-act, where a potentially stale observation is used to make a decision on what to do next. example : Let’s say you planned to meet a friend at noon at the Starbucks on University Avenue. But when you get there, you realize there are two Starbucks on University Avenue, and you’re not sure which one you agreed to meet at. At 12:10, you don’t see your friend at Starbucks A, so you walk over to Starbucks B to see if he’s there, but he isn’t there either. There are a few possibilities: your friend is late and not at either Starbucks; your friend arrived at Starbucks A after you left; or your friend was at Starbucks B, but went to look for you, and is now en route to Starbucks A. another example of race condition is lazy initialization . as first you will check if the instance is created then you will decide if you will create an instance . 
+
+#### Compound actions 
+Operations A and B are atomic with respect to each other if, from the perspective of a thread executing A, when another thread executes B, either all of B has executed or none of it has. An atomic operation is one that is atomic with respect to all operations, including itself, that operate on the same state.  Where practical, use existing thread-safe objects, like AtomicLong, to manage your class’s state. It is simpler to reason about the possible states and state transitions for existing thread-safe objects than it is for arbitrary state variables, and this makes it easier to maintain and verify thread safety.
 
