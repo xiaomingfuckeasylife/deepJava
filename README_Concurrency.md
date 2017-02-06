@@ -9,9 +9,9 @@
   
 ### Benefits of threads 
   threads can reduce development and maintenance costs and improve the performance of complex applications. Threads make it easier to model how humans work and interact , by turning asynchonous workflows into mostly sequential ones . 
-  * one of the most obvious benefits is Exploiting the multi-process cpu . 
-  * simplicify modeling. sometimes the problem is just too complicated then when you think as a whole problem , you have no idea which way to think , but when you cut the problem into pieces and put every piece task into different thread . it gets easier. 
-  * simplified handling of asynchronous events . when we using a single-thread events loop , when one user blocked , then all other user blocked . so the best way to create a usable and stable program is to give each user with their own thread . 
+  * one of the most obvious benefits is Exploiting `the multi-process cpu` . 
+  * `simplicify modeling`. sometimes the problem is just too complicated then when you think as a whole problem , you have no idea which way to think , but when you cut the problem into pieces and put every piece task into different thread . it gets easier. 
+  * `simplified handling of asynchronous events` . when we using a single-thread events loop , when one user blocked , then all other user blocked . so the best way to create a usable and stable program is to give each user with their own thread . 
  
 ### Rists of threads 
   threads safe issues.
