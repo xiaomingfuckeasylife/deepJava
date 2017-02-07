@@ -167,3 +167,44 @@ public class CachedFactorizer implements Servlet {
 CachedFactorizer no longer uses AtomicLong for the hit counter, instead reverting to using a long field. It would be safe to use AtomicLong here, but there is less benefit than there was in CountingFactorizer. Atomic variables are useful for effecting atomic operations on a single variable, but since we are already using synchronized blocks to construct atomic operations, using two different synchronization mechanisms would be confusing and would offer no performance or safety benefit.
 The restructuring of CachedFactorizer provides a balance between simplicity(synchronizing the entire method) and concurrency (synchronizing the shortest possible code paths).
 Avoid holding locks during lengthy computations or operations at risk of not completing quickly such as network or console I/O.
+
+### Sharing Objects 
+We have seen how synchronized blocks and methods can ensure that operations execute atomically, but it is a common misconception that synchronized is only about atomicity or demarcating “critical sections”. Synchronization also has another significant, and subtle, aspect: `memory visibility`. We want not only to prevent one thread from modifying the state of an object when another is using it, but also to ensure that when a thread modifies the state of an object, other threads can actually see the changes that were made. But without synchronization, this may not happen. You can ensure that objects are published safely either by using explicit synchronization or by taking advantage of the synchronization built into library classes.
+
+#### Visibility
+In a single-threaded environment, if you write a value to a variable and later read that variable with no intervening writes, you can expect to get the same value back. This seems only natural. It may be hard to accept at first, but when the reads and writes occur in different threads, this is simply not the case. In general, there is no guarantee that the reading thread will see a value written by another thread on a timely basis, or even at all. In order to ensure visibility of memory writes across threads, you must use synchronization.
+```java
+public class NoVisibility{
+  private static boolean ready ;
+  private static int num;
+  static class Reader extends Thread{
+    public void run() {
+      try {
+	while (!ready) {
+	  Thread.yield();
+	}
+	System.out.println(num);
+      } catch (Exception ex) {
+	ex.printStackTrace();
+      }
+    }
+  }
+  public static void main(String[] args){
+    new Reader().start();
+    num = 41;
+    ready = true;
+  }
+}
+```
+the result may be 0 , 41 or even never stop spining . `This may seem like a broken design, but it is meant to allow JVMs to take full advantage of the performance of modern multiprocessor hardware. For example, in the absence of synchronization,the Java Memory Model permits the compiler to reorder operations and cache values in registers, and permits CPUs to reorder operations and cache values in processor-specific caches.`
+```java
+@NotThreadSafe
+public class MutableInteger{
+  private int value;
+  public int get(){return value;}
+  public void set(int value){this.value = value;}
+}
+```
+We can make MutableInteger thread safe by synchronizing the getter and setter. `Synchronizing only the setter would not be sufficient: threads calling get would still be able to see stale values`.
+
+#### Nonatomic 64-bit operations
