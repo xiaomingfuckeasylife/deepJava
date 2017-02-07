@@ -208,3 +208,21 @@ public class MutableInteger{
 We can make MutableInteger thread safe by synchronizing the getter and setter. `Synchronizing only the setter would not be sufficient: threads calling get would still be able to see stale values`.
 
 #### Nonatomic 64-bit operations
+stale values are as we know from some thread . but if our value is a 64-bit type value , then the value may be strange , for the JVM is permitted to treat a 64-bit read or write as two seperate 32-bit operation . so if the read or write accour in two different threads then bad things happends. Thus, even if you don’t care about stale values, it is not safe to use shared mutable long and double variables in multithreaded programs unless they are declared volatile or guarded by a lock.
+
+#### Volatile variables
+The Java language also provides an alternative, weaker form of synchronization,volatile variables, to ensure that updates to a variable are propagated predictably to other threads. When a field is declared volatile, the compiler and runtime are put on notice that this variable is shared and that operations on it should not be reordered with other memory operations. Volatile variables are not cached in registers or in caches where they are hidden from other processors, so a read of a volatile variable always returns the most recent write by any thread.accessing a volatile variable performs no locking and so cannot cause the executing thread to block, making volatile variables a lighter-weight synchronization mechanism than synchronized.
+
+When thread A writes to a volatile variable and subsequently thread B reads that same variable, the values of all variables that were visible to A prior to writing to the volatile variable become visible to B after reading the volatile variable. So from a memory visibility perspective, writing a volatile variable is like exiting a synchronized block and reading a volatile
+variable is like entering a synchronized block. However, we do not recommend relying too heavily on volatile variables for visibility; code that relies on volatile variables for visibility of arbitrary state is more fragile and harder to understand
+than code that uses locking.
+
+Use volatile variables only when they simplify implementing and verifying your synchronization policy; avoid using volatile variables when veryfing correctness would require subtle reasoning about visibility. Good uses of volatile variables include ensuring the visibility of their own state, that of the object they refer to, or indicating that an important lifecycle event (such as initialization or shutdown) has occurred.Volatile variables are convenient, but they have limitations. The most common use for volatile variables is as a completion, interruption, or status flag, such as the asleep flag.
+
+`Locking can guarantee both visibility and atomicity; volatile variables can only guarantee visibility.`
+
+You can use volatile variables only when all the following criteria are met:
+* Writes to the variable do not depend on its current value, or you can ensure that only a single thread ever updates the value;
+* The variable does not participate in invariants with other state variables;
+* Locking is not required for any other reason while the variable is being accessed.
+
