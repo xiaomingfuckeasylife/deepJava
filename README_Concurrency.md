@@ -252,3 +252,22 @@ public class ThisEscape{
 ```
 When ThisEscape publishes the EventListener, it implicitly publishes the enclosing ThisEscape instance as well, because inner class instances contain a hidden reference to the enclosing instance.`Do not allow the this reference to escape during construction.` A common mistake that can let the this reference escape during construction is to start a thread from a constructor. for the class may not fully initialized . 
 
+### Thread Confinement
+If data is only accessed from a single thread, no synchronization is needed. This technique, thread confinement, is one of the
+simplest ways to achieve thread safety.
+
+#### Stack confinement
+Stack confinement is a special case of thread confinement in which an object can only be reached through local variables.
+
+#### ThreadLocal
+ThreadLocal, which allows you to associate a per-thread value with a value-holding object. Thread Local provides get and set accessor methods that maintain a separate copy of the value for each thread that uses it, so a get returns the most recent value passed to set from the currently executing thread.
+If you are porting a single-threaded application to a multithreaded environment,you can preserve thread safety by converting shared global variables into ThreadLocals, if the semantics of the shared globals permits this; an applicationwide cache would not be as useful if it were turned into a number of thread-local caches.
+ThreadLocal is widely used in implementing application frameworks. For example, J2EE containers associate a transaction context with an executing thread for the duration of an EJB call. This is easily implemented using a static Thread-
+Local holding the transaction context: when framework code needs to determine what transaction is currently running, it fetches the transaction context from this is convenient in that it reduces the need to pass execution context information into every method, but couples any code that uses this mechanism to the framework.
+
+### Immutability
+Immutable objects are always thread-safe.
+An object is immutable if:
+* Its state cannot be modified after construction
+* All its fields are final
+* It is properly constructed (the this reference does not escape during construction).
