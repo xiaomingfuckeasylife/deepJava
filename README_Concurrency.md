@@ -226,3 +226,29 @@ You can use volatile variables only when all the following criteria are met:
 * The variable does not participate in invariants with other state variables;
 * Locking is not required for any other reason while the variable is being accessed.
 
+### Publication and escape 
+Publishing an object means making it available to code outside of its current scope.An object that is published when it should not have been is said to have escaped.
+```java
+class UnsafeStates{
+  private String[] states = new String[]{...};
+  public String[] getStates(){status;}
+}
+```
+Publishing states in this way is problematic because any caller can modify its contents. In this case, the states array has escaped its intended scope, because what was supposed to be private state has been effectively made public.
+```java
+public class ThisEscape{
+  // constructor 
+  public ThisEscape(EventSource source){
+    source.registerListener(
+      new EventListener(){
+        public void onEvent(Event e){
+	  doSomething(e); // escape this 
+	}
+      }
+    );
+  }
+  public void doSomething(Event e){}
+}
+```
+When ThisEscape publishes the EventListener, it implicitly publishes the enclosing ThisEscape instance as well, because inner class instances contain a hidden reference to the enclosing instance.`Do not allow the this reference to escape during construction.` A common mistake that can let the this reference escape during construction is to start a thread from a constructor. for the class may not fully initialized . 
+
