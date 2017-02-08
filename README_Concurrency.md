@@ -271,3 +271,39 @@ An object is immutable if:
 * Its state cannot be modified after construction
 * All its fields are final
 * It is properly constructed (the this reference does not escape during construction).
+
+### Safe Publication 
+simply storing a reference to an object into a public field like the code below is not enough to publish that object safely .
+```java
+@NotSafety
+public Holder holder;
+
+public void initial(){
+  holder = new Holder(10);
+}
+```
+for visibility problems , the holder could appear to another thread to be in a inconsistent state , this improper publication could allow another thread to observe `a partially constructed object`.
+to publish an object safety , both the reference to the object and the object's state must be made visible to other threads at the same time . A properly constructed object can be safely published by (not consider visibility):
+* initialzing an Object reference from a static initialzer ; 
+* Storing a reference to it into a volatile field or AtomicReference ;
+* Storing a reference to it into a final field of a properly constructed object;
+* Storing a reference to it into a field that is properly guarded by a lock;
+using a static initializer is often the easiest and safest way to publish objects that can be statically constructed ; 
+```java
+public static Holder holder = new Holder(32);
+```
+Static Initializers are executed by the JVM at class initialization time ;because of internal synchronization in the JVM, this mechanism is guaranteed to safely publish any objects initiailzed in this way . 
+
+### Effectively immutable objects 
+Objects that are not technically immutable , but whose state will not be modified after publication , are called effectively immutable.they are treated like an immutable object . using effectively immutable objects can simply development and improve performance by reducing the need for synchronization . 
+
+The publication requirement for an object depend on its mutability:
+* Immutable objects can be published through any mechanism;
+* Effectively immutable objects must be safely published ;
+* Mutable Objects must be safely published , and must be either thread safe or guared by a lock .
+
+The Most useful policies for using and sharing objects in a concurrency program are : 
+* Thread-confined: object that exclusive belong to current thread . 
+* Share read-only : a read only object can be access concurrently by multiply thread without synchronization . 
+* Share thread-safe : a published object that is synchronized internally so multiple can access it without synchronization.so  threads using them without need further snchronization . 
+* Guard : a guared object can only be accessed by owning specific lock held.
