@@ -307,3 +307,110 @@ The Most useful policies for using and sharing objects in a concurrency program 
 * Share read-only : a read only object can be access concurrently by multiply thread without synchronization . 
 * Share thread-safe : a published object that is synchronized internally so multiple can access it without synchronization.so  threads using them without need further snchronization . 
 * Guard : a guared object can only be accessed by owning specific lock held.
+
+### Composing Objects 
+we want to be able to take thread-safe components and safely compose them into larger components or programs .
+
+#### Designing a thread-safe class
+The design process for a thread-safe class should include these three basic element: 
+* Identify the variables that form the object's state . 
+* Identify the invariables that constrain the state variables . 
+* Establish a policy for managing concurrency access to the object's state . 
+
+1. you cannot ensure thread safety without understanding an object's invariants and postconditions . Constraints on the valid values or state transitions for state variables can create atomicity and encapulation requirements.
+2. Some Objects also have methods with state-based `precondition`. for example , you cannot remove an item from an empty queue;a queue must be in the "nonempty" state before you can remove an element . Operations with state-based preconditions are called `state dependent`. 
+3. state Ownership , for better or worse , garbage collection lets us avoid thinking carefully about `ownership` . when passing an object to a method in C++,you have to think fairly carefully about whether you are transforing ownership . engaging in a short-term loan, or envisioning long-term joint ownership .Ownership implies control,but once you publish a reference to a mutable object, you no longer have exclusive control, at best you might have shared ownership .
+
+#### Instance confinement -- Java monitor pattern 
+An object following the Java monitor pattern encapsulates all its mutable state and guards it with the object's own intrisic lock. 
+```java
+@ThreadSafe
+public final class Counter {
+	@GuardedBy("this") private long value = 0;
+	public synchronized long getValue() {
+		return value;
+	}
+	public synchronized long increment() {
+		if (value == Long.MAX_VALUE)
+		throw new IllegalStateException("counter overflow");
+		return ++value;
+	}
+}
+```
+#### Instance confinement -- private lock .
+```java
+public class PrivateLock {
+  private final Object lock = new Object();
+  @GuardedBy("lock") Widget widget ;
+  void dosomething(){
+    synchronized(lock){
+      // ... access widget 
+    }
+  }
+}
+```
+There are advantages to using a private lock object instead of an object’s intrinsic lock (or any other publicly accessible lock). Making the lock object private encapsulates the lock so that client code cannot acquire it, whereas a publicly accessible lock allows client code to participate in its synchronization policy correctly or incorrectly.
+
+#### examples 
+```java
+@ThreadSafe
+public class MonitorVehicleTracker {
+	@GuardedBy("this")
+	private final Map<String, MutablePoint> locations;
+
+	public MonitorVehicleTracker(Map<String, MutablePoint> locations) {
+		this.locations = deepCopy(locations);
+	}
+
+	public synchronized Map<String, MutablePoint> getLocations() {
+		return deepCopy(locations);
+	}
+
+	public synchronized MutablePoint getLocation(String id) {
+		MutablePoint loc = locations.get(id);
+		return loc == null ? null : new MutablePoint(loc);
+	}
+
+	public synchronized void setLocation(String id, int x, int y) {
+		MutablePoint loc = locations.get(id);
+		if (loc == null)
+			throw new IllegalArgumentException("No such ID: " + id);
+		loc.x = x;
+		loc.y = y;
+	}
+
+	private static Map<String, MutablePoint> deepCopy(Map<String, MutablePoint> m) {
+		Map<String, MutablePoint> result = new HashMap<String, MutablePoint>();
+		for (String id : m.keySet())
+			result.put(id, new MutablePoint(m.get(id)));
+		return Collections.unmodifiableMap(result);
+	}
+}
+@NotThreadSafe
+public class MutablePoint {
+	public int x, y;
+
+	public MutablePoint() {
+		x = 0;
+		y = 0;
+	}
+
+	public MutablePoint(MutablePoint p) {
+		this.x = p.x;
+		this.y = p.y;
+	}
+}
+```
+this example copy the passing location for the location is changable so we can not trust it . we can make a copy of it .so if the original changed there will not have any bad influence on this class . 
+```java
+@Immutable
+public class Point {
+	public final int x, y;
+
+	public Point(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+}
+```
+instead we can use an Immutable class then we do not need to deepCopy .
