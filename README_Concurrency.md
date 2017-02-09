@@ -460,3 +460,8 @@ subtle means to maintain thread safety, document them because they may not be ob
 
 without the specific documentation about concurrency policy how we assuming the API class safety issue . `By semantic And Google`
 
+### Building Blocks
+#### Synchronization Collections 
+1. The synchronized collection classes include Vector and Hashtable, part of the original JDK, as well as their cousins added in JDK 1.2, the synchronized wrapper classes created by the Collections.synchronizedXxx factory methods. These classes achieve thread safety by encapsulating their state and synchronizing every public method so that only one thread at a time can access the collection state.
+2. The synchronized collections are thread-safe, but you may sometimes need to use additional client-side locking to guard compound actions. Common compound actions on collections include iteration (repeatedly fetch elements until the collection is exhausted), navigation (find the next element after this one according to some order), and conditional operations such as put-if-absent (check if a Map has a mapping for key K, and if not, add the mapping (K,V)). With a synchronized collection, these compound actions are still technically thread-safe even without client-side locking, but they may not behave as you might expect when other threads can concurrently modify the collection. or will throw ConcurrentModifyException if the value has been changed during iteration . 
+
