@@ -414,3 +414,49 @@ public class Point {
 }
 ```
 instead we can use an Immutable class then we do not need to deepCopy .
+
+#### Adding functionality to existing thread-safe classes
+sometimes we need to add some operation to a class ? here is how we can do it.
+
+1. If you can modify the original class, you need to understand the implementation’s synchronization policy(which means how this class maintains its thread safety . synchronization ? lock ? confinement ? valotile ?) so that you can enhance it in a manner consistent with its original design. Adding the new method directly to the class means that all the code that implements the synchronization policy for that class is still contained in one source file, facilitating easier comprehension and maintenance.
+2. another way is to extend the class, assuming it was designed for extension . this approach is more fragile than adding code directly to a class . for the implementation of the synchronization policy is now distributed over multiple seperately maintained source files. if the underly class changed its synchronation policy then the class state break . 
+3. a third stratege is to extend the functionality of the class without extending the class itself by placing extension code in a "helper" class . 
+```java
+@NotThreadSafe
+public class ListHelper<E>{
+	public List<E> list = Collections.synchronizedList(new ArrayList<E>());
+	//...
+	public synchronized boolean putIfAbsence(E x){
+		boolean absent = contains(x);
+		if(!absent)
+			add(x);
+		return absent;	
+	}
+}
+```
+this would not be thread safe because it synchronized the wrong lock . Whatever lock the List uses to guard its state, it sure isn’t the lock on the ListHelper. we can change the code by add a client side lock . 
+```java
+@NotThreadSafe
+public class ListHelper<E>{
+	public List<E> list = Collections.synchronizedList(new ArrayList<E>());
+	//...
+	public  boolean putIfAbsence(E x){
+		synchronized(list){
+			boolean absent = list.contains(x);
+			if(!absent)
+				list.add(x);
+		}
+		return absent;
+	}
+}
+```
+this kind of lock is also fragile for it is very like the second approach. and you add a new lock out of nowhere clearly not very concern the orginal's synchronization policy .
+
+#### Documentation synchronization policies 
+Document a class’s thread safety guarantees for its clients; document its synchronization policy for its maintainers.
+Crafting a synchronization policy requires a number of decisions: which variables to make volatile, which variables to guard with locks, which lock(s) guard which variables, which variables to make immutable or confine to a thread, which operations must be atomic, etc. Some of these are strictly implementation details and should be documented for the sake of future maintainers, but some affect the publicly observable locking behavior of your class and should be documented as part of its specification.
+At the very least, document the thread safety guarantees made by a class. Is it thread-safe? Does it make callbacks with a lock held? Are there any specific locks that affect its behavior? Don’t force clients to make risky guesses. If you don’t want to commit to supporting client-side locking, that’s fine, but say so. If you want clients to be able to create new atomic operations on your class, you need to document which locks they should acquire to do so safely. If you use locks to guard state, document this for future maintainers, because it’s so easy—the @GuardedBy annotation will do the trick. If you use more
+subtle means to maintain thread safety, document them because they may not be obvious to maintainers.
+
+without the specific documentation about concurrency policy how we assuming the API class safety issue . `By semantic And Google`
+
