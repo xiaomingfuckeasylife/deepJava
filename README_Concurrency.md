@@ -465,3 +465,18 @@ without the specific documentation about concurrency policy how we assuming the 
 1. The synchronized collection classes include Vector and Hashtable, part of the original JDK, as well as their cousins added in JDK 1.2, the synchronized wrapper classes created by the Collections.synchronizedXxx factory methods. These classes achieve thread safety by encapsulating their state and synchronizing every public method so that only one thread at a time can access the collection state.
 2. The synchronized collections are thread-safe, but you may sometimes need to use additional client-side locking to guard compound actions. Common compound actions on collections include iteration (repeatedly fetch elements until the collection is exhausted), navigation (find the next element after this one according to some order), and conditional operations such as put-if-absent (check if a Map has a mapping for key K, and if not, add the mapping (K,V)). With a synchronized collection, these compound actions are still technically thread-safe even without client-side locking, but they may not behave as you might expect when other threads can concurrently modify the collection. or will throw ConcurrentModifyException if the value has been changed during iteration . 
 
+#### Concurrent Collections 
+Replacing synchronized collections with concurrent collections can offer dramatic scalability improvements with little risk. such as ConcurrentHashMap , Multiple thread can manipulate this map simultaneously , without worry about thread safety . they use different synchronized policy compare to synchronized collection . 
+
+Queue and Blocking Queue is intented to hold a set of elements temporarily while they wait processing . Queue's operation is not blocked , while BLocking Queue does . if Queue is empty , the retrieval operation return null . if it is a block queue then it will block until it is not empty . if it is full when some thread want to add element in it will block too until the queue is not full . 
+
+* ConcurrentLinkedQueue : a traditinoal Concurrent FIFO queue. 
+* Priority Queue : a none concurrent priority ordered queue.
+* ConcurrentSkipListMap is a concurrent replacement of synchronized SortedMap.
+* ConcurrentSkitListSet is a concurrent replacement of synchronized SortedSet.
+* CopyOnWriteArrayList is a concurrent replacement of synchronized List.
+* copyOnWriteArratySet is a concurrent replacement of synchronized set. 
+
+The copy-on-write collections derive their thread safety from the fact that as long as an effectively immutable object is properly published, no further synchronization is required when accessing it. They implement mutability by creating and republishing a new copy of the collection every time it is modified. Iterators for the copy-on-write collections retain a reference to the backing array that was current at the start of iteration, and since this will never change.`the copy-on-write collections are reasonable to use only when iteration is far more common than modification`.
+
+#### Blocking queues and the producer-consumer pattern
