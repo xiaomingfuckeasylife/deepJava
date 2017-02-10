@@ -484,6 +484,102 @@ In a producer-consumer design built around a blocking queue, producers place dat
 this kind of machanizm can be used in a lot of scenes . such as dish washing , webcrawing and so on . as long as the manipulation can be seperated into two threads and may be one thread never need to be shutdown and it depended on the next thread.  we can try producer and consumer pattern . 
 
 ### Deques and work stealing
-
 Java 6 also adds another two collection types, Deque (pronounced “deck”) and BlockingDeque, that extend Queue and BlockingQueue. A Deque is a doubleended queue that allows efficient insertion and removal from both the head and the tail. Implementations include ArrayDeque and LinkedBlockingDeque. Just as blocking queues lend themselves to the producer-consumer pattern,deques lend themselves to a related pattern called work stealing. A producerconsumer design has one shared work queue for all consumers; in a work stealing design, every consumer has its own deque. If a consumer exhausts the work in its own deque, it can steal work from the tail of someone else’s deque. Work stealing can be more scalable than a traditional producer-consumer design because workers don’t contend for a shared work queue; most of the time they access only their
 own deque, reducing contention. When a worker has to access another’s queue, it does so from the tail rather than the head, further reducing contention. Work stealing is well suited to problems in which consumers are also producers when performing a unit of work is likely to result in the identification of more work. For example, processing a page in a web crawler usually results in the identification of new pages to be crawled. Similarly, many graph-exploring algorithms, such as marking the heap during garbage collection, can be efficiently parallelized using work stealing. When a worker identifies a new unit of work, it places it at the end of its own deque (or alternatively, in a work sharing design, on that of another worker); when its deque is empty, it looks for work at the end of someone else’s deque, ensuring that each worker stays busy.
+
+### Blocking and interruptible methods
+When your code calls a method that throws InterruptedException, then your method is a blocking method too, and must have a plan for responding to interruption. For library code, there are basically two choices:
+* Propagate the InterruptedException.  Throw the exception out . 
+* Restore the interrupt. catch the exception . restore the interupted status . 
+```java
+public class TaskRunnable implements Runnable {
+BlockingQueue<Task> queue;
+...java
+public void run() {
+		try {
+			processTask(queue.take());
+		} catch (InterruptedException e) {
+			// restore interrupted status
+			Thread.currentThread().interrupt();
+		}
+	}
+}
+```
+
+### Synchronizers 
+A synchronizer is any object that coordinates the control flow of threads based on its state. Blocking queues can act as synchronizers; other types of synchronizers include semaphores, barriers, and latches.
+All synchronizers share certain structural properties: they encapsulate state that determines whether threads arriving at the synchronizer should be allowed to pass or forced to wait, provide methods to manipulate that state, and provide methods to wait efficiently for the synchronizer to enter the desired state.
+
+#### Latches
+A latch acts as a gate: until the latch reaches the terminal state the gate is closed and no thread can pass, and in the terminal state the gate opens, allowing all threads to pass. Once the latch reaches the terminal state, it cannot change state again, so it remains open forever. Latches can be used to ensure that certain activities do not proceed until other one-time
+activities complete, such as:
+* Ensuring that a computation does not proceed until resources it needs have been initialized. A simple binary (two-state) latch could be used to indicate “Resource R has been initialized”, and any activity that requires R would wait first on this latch.
+* Ensuring that a service does not start until other services on which it depends have started. Each service would have an associated binary latch; starting service S would involve first waiting on the latches for other services on which S depends, and then releasing the S latch after startup completes so any services that depend on S can then proceed.
+* Waiting until all the parties involved in an activity, for instance the players in a multi-player game, are ready to proceed. In this case, the latch reaches the terminal state after all the players are ready.
+```java
+public static void main(String[] args) {
+	final CountDownLatch startLatch = new CountDownLatch(1);
+	final CountDownLatch endLatch = new CountDownLatch(1);
+	new Thread(new Runnable() {
+		public void run() {
+			try {
+				startLatch.await();
+				for(int i=0;i<100;i++){
+					Thread.sleep(10);
+				}
+				endLatch.countDown();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				Thread.currentThread().interrupt();
+			}
+		}
+	}).start();;
+
+	try {
+		Thread.sleep(1000);
+		long start = System.currentTimeMillis();
+		startLatch.countDown();
+		endLatch.await();
+		long end = System.currentTimeMillis();
+		System.out.println(end - start);
+	} catch (InterruptedException e) {
+		e.printStackTrace();
+	}
+}
+```
+
+#### FutureTask
+A computation represented by a FutureTask is implemented with a Callable, the result-bearing equivalent of Runnable, and can be in one of three states: waiting to run, running, or completed. Completion subsumes all the ways a computation can complete,
+including normal completion, cancellation, and exception. Once a FutureTask enters the completed state, it stays in that state forever.The behavior of Future.get depends on the state of the task. If it is completed, get returns the result immediately, and otherwise blocks until the task transitions to the completed state and then returns the result or throws an exception.
+```java
+private static FutureTask<String> future = new FutureTask<String>(new Callable<String>() {
+	@Override
+	public String call() throws Exception {
+		return "A string for future task";
+	}
+});
+
+private final static Thread t = new Thread(future);
+
+public static void start(){
+	t.start();
+}
+
+public static void main(String[] args) throws InterruptedException{
+	try {
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(1000);
+					start();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+		System.out.println(future.get());
+	} catch (ExecutionException e) {
+		e.printStackTrace();
+	}
+}
+```
