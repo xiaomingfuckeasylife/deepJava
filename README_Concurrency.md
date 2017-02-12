@@ -583,3 +583,82 @@ public static void main(String[] args) throws InterruptedException{
 	}
 }
 ```
+#### Semaphores
+A semaphores manages a set of virtual permits . the initial number of permits is passed to semaphores through the constructor .Activities can aquire permits(as long as they are some left), and release them when they are done with it . If no permit is available , acquire blocks until one is release the permit or interupted , or timeout . 
+Semaphores are useful for implementing resource pools such as database connection pools. While it is easy to construct a fixed-sized pool that fails if you request a resource from an empty pool, what you really want is to block if the pool is empty and unblock when it becomes nonempty again.
+Similar you can use a semaphores turn any kind of collection  into a blocking bounded collection . 
+```java
+public class BoundedHashSet<T> {
+	private final Set<T> set;
+	private final Semaphore sem;
+
+	public BoundedHashSet(int bound) {
+		this.set = Collections.synchronizedSet(new HashSet<T>());
+		sem = new Semaphore(bound);
+	}
+
+	public boolean add(T o) throws InterruptedException {
+		sem.acquire();
+		boolean wasAdded = false;
+		try {
+			wasAdded = set.add(o);
+			return wasAdded;
+		} finally {
+			if (!wasAdded)
+				sem.release();
+		}
+	}
+
+	public boolean remove(Object o) {
+		boolean wasRemoved = set.remove(o);
+		if (wasRemoved)
+			sem.release();
+		return wasRemoved;
+	}
+}
+```
+#### Barriers 
+Barriers are similar to latches in that they block a group of threads until some event has occurred . The key difference is that with a barrier, all the threads must come together at a barrier point at the same time in order to proceed. Latches are for waiting for events; barriers are for waiting for other threads.
+
+CyclicBarrier allows a fixed number of parties to rendezvous repeatedly at a barrier point and is useful in parallel iterative algorithms that break down a problem into a fixed number of independent subproblems. Threads call await when they reach the barrier point, and await blocks until all the threads have reached the barrier point. If all threads meet at the barrier point, the barrier has been successfully passed, in which case all threads are released and the barrier is reset so it can be used again. If a call to await times out or a thread blocked in await is interrupted, then the barrier is considered broken and all outstanding calls to await terminate with BrokenBarrierException.
+
+Another form of barrier is Exchanger, a two-party barrier in which the parties exchange data at the barrier point Exchangers are useful when the parties perform asymmetric activities, for example when one thread fills a buffer with data and the other thread consumes the data from the buffer; these threads could use an Exchanger to meet and exchange a full buffer for an empty one. When two threads exchange objects via an Exchanger, the exchange constitutes a safe publication of both objects to the other party . 
+
+### Build a perfect cache 
+```java
+public class Memoizer<A, V> implements Computable<A, V> {
+	private final ConcurrentMap<A, Future<V>> cache = new ConcurrentHashMap<A, Future<V>>();
+	private final Computable<A, V> c;
+
+	public Memoizer(Computable<A, V> c) {
+		this.c = c;
+	}
+
+	public V compute(final A arg) throws InterruptedException {
+		while (true) {
+			Future<V> f = cache.get(arg);
+			if (f == null) {
+				Callable<V> eval = new Callable<V>() {
+					public V call() throws InterruptedException {
+						return c.compute(arg);
+					}
+				};
+				FutureTask<V> ft = new FutureTask<V>(eval);
+				f = cache.putIfAbsent(arg, ft);
+				if (f == null) {
+					f = ft;
+					ft.run();
+				}
+			}
+			try {
+				return f.get();
+			} catch (CancellationException e) {
+				cache.remove(arg, f);
+			} catch (ExecutionException e) {
+				throw launderThrowable(e.getCause());
+			}
+		}
+	}
+}
+```
+using a Future to put the long computation in the back ground. 
