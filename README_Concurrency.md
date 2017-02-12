@@ -661,4 +661,47 @@ public class Memoizer<A, V> implements Computable<A, V> {
 	}
 }
 ```
-using a Future to put the long computation in the back ground. 
+using a Future to put the long computation in the background. 
+
+### Task Excecution 
+tasks are independent activities: work that doesn’t depend on the state, result, or side effects of other tasks.
+Most server applications offer a natural choice of `task boundary`: individual client requests. Web servers, mail servers, file servers, EJB containers, and database servers all accept requests via network connections from remote clients.Using individual requests as task boundaries usually offers both independence and appropriate task sizing.
+#### Execution tasks sequentially 
+```java
+class SingleThreadWebServer {
+	public static void main(String[] args) throws IOException {
+		ServerSocket socket = new ServerSocket(80);
+		while (true) {
+			Socket connection = socket.accept();
+			handleRequest(connection);
+		}
+	}
+}
+```
+only can process one request at a time . 
+#### Thread-per-task 
+```
+class hreadPerTaskServer {
+	public static void main(String[] args) throws IOException {
+		ServerSocket socket = new ServerSocket(80);
+		while (true) {
+			final Socket connection = socket.accept();
+			Runnable run = new Runnable(){
+				public void run(){
+					handleRequest(connection)
+				}
+			}
+			new Thread(run).start();
+		}
+	}
+}
+```
+
+* Task processing is offloaded from the main thread, enabling the main loop to resume waiting for the next incoming connection more quickly. This enables new connections to be accepted before previous requests complete, improving responsiveness
+* Tasks can be processed in parallel, enabling multiple requests to be serviced simultaneously. This may improve throughput if there are multiple processors,or if tasks need to block for any reason such as I/O completion, lock acquisition, or resource availability.
+* Task-handling code must be thread-safe, because it may be invoked concurrently for multiple tasks.
+
+#### Disadvantages of unbounded thread creation
+* `Thread lifecycle overhead`. Thread creation and teardown are not free. The actual overhead varies across platforms, but thread creation takes time, introducing latency into request processing, and requires some processing activity by the JVM and OS. If requests are frequent and lightweight, as in most server applications, creating a new thread for each request can consume significant computing resources
+* Resource consumption. Active threads consume system resources, especially memory. When there are more runnable threads than available processors, threads sit idle. Having many idle threads can tie up a lot of memory, putting pressure on the garbage collector, and having many threads competing for the CPUs can impose other performance costs as well. If you have enough threads to keep all the CPUs busy, creating more threads won’t help and may even hurt.
+* Stability. There is a limit on how many threads can be created. The limit varies by platform and is affected by factors including JVM invocation parameters, the requested stack size in the Thread constructor, and limits on threads placed by the underlying operating system.2 When you hit this limit, the most likely result is an OutOfMemoryError. Trying to recover from such an error is very risky; it is far easier to structure your program to avoid hitting this limit.
