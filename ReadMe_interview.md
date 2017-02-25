@@ -1,11 +1,15 @@
-首先感谢牛客网，一直在牛客网上看别人的面试经验，对我也给予了很大的帮助。今天我也来贡献，阿里实习的电话面试。
-晚上7点面试官准时给我打电话。下面我就尽量按顺序来分享面试问的问题。太多了，记不全了。
-
 （1）自我介绍。
 
 （2）JVM如何加载一个类的过程，双亲委派模型中有哪些方法？
 
 （3）HashMap如何实现的？
+
+* HashMap works on the principal of hashing.
+* Map.Entry interface - This interface gives a map entry (key-value pair). HashMap in Java stores both key and value object, in bucket, as Entry object which implements this nested interface Map.Entry.
+* hashCode() -HashMap provides put(key, value) for storing and get(key) method forretrieving Values from HashMap. When put() method is used to store (Key, Value) pair, HashMap implementation calls hashcode on Key object to calculate a hash that is used to find a bucket where Entry object will be stored. When get() method is used to retrieve value, again key object is used to calculate a hash which is used then to find a bucket where that particular key is stored.
+* equals() - equals() method is used to compare objects for equality. In case of HashMap key object is used for comparison, also using equals() method Map knows how to handle hashing collision (hashing collision means more than one key having the same hash value, thus assigned to the same bucket. In that case objects are stored in a linked list.
+
+![hashMap](https://qph.ec.quoracdn.net/main-qimg-8d490b416731e970856e0b051d904441-p)
 
 （4）HashMap和Concurrent HashMap区别， Concurrent HashMap 线程安全吗， Concurrent HashMap如何保证 线程安全？
 
