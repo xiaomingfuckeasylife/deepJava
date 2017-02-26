@@ -15,15 +15,26 @@
 
 ![hashMap](https://qph.ec.quoracdn.net/main-qimg-8d490b416731e970856e0b051d904441-p)
 
-Though HashMap implementation provides constant time performance O(1) for get() and put() method but that is in the ideal case when the Hash function distributes the objects evenly among the buckets.
-But the performance may worsen in the case hashCode() used is not proper and there are lots of hash collisions. As we know now that in case of hash collision entry objects are stored as a node in a linked-list and equals() method is used to compare keys. That comparison to find the correct key with in a linked-list is a linear operation so in a worst case scenario the complexity becomes O(n).
-To address this issue in Java 8 hash elements use balanced trees instead of linked lists after a certain threshold is reached. Which means HashMap starts with storing Entry objects in linked list but after the number of items in a hash becomes larger than a certain threshold, the hash will change from using a linked list to a balanced tree, this will improve the worst case performance from O(n) to O(log n).
+* Though HashMap implementation provides constant time performance O(1) for get() and put() method but that is in the ideal case when the Hash function distributes the objects evenly among the buckets.But the performance may worsen in the case hashCode() used is not proper and there are lots of hash collisions. As we know now that in case of hash collision entry objects are stored as a node in a linked-list and equals() method is used to compare keys. That comparison to find the correct key with in a linked-list is a linear operation so in a worst case scenario the complexity becomes O(n).To address this issue in Java 8 hash elements use balanced trees instead of linked lists after a certain threshold is reached. Which means HashMap starts with storing Entry objects in linked list but after the number of items in a hash becomes larger than a certain threshold, the hash will change from using a linked list to a balanced tree, this will improve the worst case performance from O(n) to O(log n).
 
 （4）HashMap和Concurrent HashMap区别， Concurrent HashMap 线程安全吗， Concurrent HashMap如何保证 线程安全？
 
+* HashMap不是线程安全的，ConcurrentHashMap实现成安全的，通过ReentrantLock保证线程安全性。通过分散热点的思想将一个热点拆分为多个小热点，这样可以完成使得可以并行的对热点进行访问。ReentrantLock本身采用的是Unsafe的CAS保证线程的安全性的。
+
 （5）HashMap和HashTable 区别，HashTable线程安全吗？
 
+* HashMap不是线程安全的，HashTable是线程安全的。
+* HashMap key and value all can be null but in HashTable neither the key and the value can be null。
+* HashMap 有一个实现类LinkedHashMap可以有序访问元素 而HashTable则没有对应的实现。
+
 （6）进程间通信有哪几种方式？
+
+* 管道（Pipe）：其中无名管道可以在具有亲属关系的管道间进行通信，有名管道克服了管道名字的问题，可以在无亲属关系的管道间进行通信。
+* 信号（signal）：相对复杂的通信方式，信号可以用于通知接受进程有某种事件发生。
+* 消息队列（Message Queue）：消息队列是消息的链接表，有写权限的进程可以向消息队列中推入消息，有读取权限的进程可以向消息队列中读出消息。消息队列克服了信号承载信息量少，管道只能承载无格式字节流，以及缓冲区大小受限的等缺点。
+* 共享内存 ：建立一块内存区域，不同的进程都可以访问，这个是最快的IPC（interprocess communication）。是针对其它线程运行效率低下而设计的。往往与其它通信机制联合使用，比如信号量，来达到访问进程的互斥以及同步。
+* 信号量（semaphores）：用于进程间，或者同一进程不同线程间的同步。
+* 套接字（Socket）：用于不同机器的进程间的交互。
 
 （7）JVM分为哪些区，每一个区干吗的？
 
