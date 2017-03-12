@@ -28,3 +28,15 @@ olap的基本多维分析有钻取，切片，切块，旋转
 
 * InnoDB存储引擎；支持事务，主要针对oltp应用。其特点是行锁设计，支持外键。默认读取操作不会产生锁。5.5.8开始为默认的存储引擎。InnoDB存储引擎将数据放入到一个逻辑的表空间中，对应一个独立的idb文件。
 * MyISAM :不支持事务，表锁设计，支持全文索引，主要真多olap应用。
+
+### 数据类型
+
+* `show create table test\G;` 查看test表的具体信息。
+* set sql_mode='&&&' 设置变量值对于当前session中。
+* check sql_mode global value and session value : select @@global.sql_mode\G;  select @@global.sql_mode\G;
+* timestamp and datetime all indicate 'yyyy-MM-dd hh:mi:ss' ,but timestamp is the million seconds between 1970-01-01 and now , and it can set a default value , but datetime can not set a default value . and if you update the timestamp record , the time will automaticly update to now . 
+* select IF(1 > 2,1,2) from dual; IF sentence , good stuff . 
+
+
+
+
