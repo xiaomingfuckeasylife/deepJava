@@ -23,3 +23,8 @@ olap的基本多维分析有钻取，切片，切块，旋转
 
 #### OLTP VS OLAP
 ![oltp vs olap](https://i.imgsafe.org/50cd37f5df.png)
+
+#### MySQL 存储引擎
+
+* InnoDB存储引擎；支持事务，主要针对oltp应用。其特点是行锁设计，支持外键。默认读取操作不会产生锁。5.5.8开始为默认的存储引擎。InnoDB存储引擎将数据放入到一个逻辑的表空间中，对应一个独立的idb文件。
+* MyISAM :不支持事务，表锁设计，支持全文索引，主要真多olap应用。
