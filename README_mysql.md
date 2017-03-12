@@ -36,7 +36,4 @@ olap的基本多维分析有钻取，切片，切块，旋转
 * check sql_mode global value and session value : select @@global.sql_mode\G;  select @@global.sql_mode\G;
 * timestamp and datetime all indicate 'yyyy-MM-dd hh:mi:ss' ,but timestamp is the million seconds between 1970-01-01 and now , and it can set a default value , but datetime can not set a default value . and if you update the timestamp record , the time will automaticly update to now . 
 * select IF(1 > 2,1,2) from dual; IF sentence , good stuff . 
-
-
-
-
+* 排序规则也是可以设置的，不同的排序比较算法，得出的顺序是不一样的
