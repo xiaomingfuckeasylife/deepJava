@@ -147,8 +147,8 @@
     
 ### 值传递和引用传递
 
-java```
-  Dog aDog = new Dog("Max");
+```java
+Dog aDog = new Dog("Max");
   foo(aDog);
   aDog.getName().equals("Max"); // true
 
