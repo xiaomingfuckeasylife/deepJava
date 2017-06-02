@@ -343,3 +343,33 @@ linux利用哪些命令，查找哪里出了问题（例如io密集任务，cpu�
 后台系统怎么防止请求重复提交？   
 有多个相同的接口，我想客户端同时请求，然后只需要在第一个请求返回结果的时候返回给客户端     
 
+### 你是如何调用 wait（）方法的？使用 if 块还是循环？为什么？
+
+```java
+// The standard idiom for using the wait method
+synchronized (obj) {
+while (condition does not hold)
+obj.wait(); // (Releases lock, and reacquires on wakeup)
+... // Perform action appropriate to condition
+}
+```
+
+*** Another thread could have obtained the lock and changed the guarded state between
+the time a thread invoked notify and the time the waiting thread woke.
+
+*** Another thread could have invoked notify accidentally or maliciously when
+the condition did not hold. Classes expose themselves to this sort of mischief
+by waiting on publicly accessible objects. Any wait contained in a synchronized
+method of a publicly accessible object is susceptible to this problem.
+
+*** The notifying thread could be overly generous?in waking waiting threads.
+For example, the notifying thread might invoke notifyAll even if only some
+of the waiting threads have their condition satisfied.
+
+*** The waiting thread could (rarely) wake up in the absence of a notify. This is
+known as a `spurious wakeup`.
+
+### Java 中 sleep 方法和 wait 方法的区别？
+虽然两者都是用来暂停当前运行的线程，但是 sleep() 实际上只是短暂停顿，因为它不会释放锁，而 wait() 意味着条件等待，这就是为什么该方法要释放锁，因为只有这样，其他等待的线程才能在满足条件时获取到该锁。
+
+
